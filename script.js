@@ -221,7 +221,7 @@ function renderCards(){
     ${data.want ? "💖":"🤍"}
   </button>
 
-  <img src="img/${card.id}_O.jpg"
+  <img src="img/${card.image}"
        onerror="this.src=''">
 
   <div class="card-id">${card.id}</div>
