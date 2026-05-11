@@ -227,7 +227,7 @@ function renderCards(){
 
   <div class="card-id">${card.id}</div>
   <div class="dress">${card.dress}</div>
-  <div>${card.character}</div>
+  <div>${card.character.replace(/^\d+_/, "")}</div>
   <div>${card.rarity}</div>
 
   <div class="count-box">
