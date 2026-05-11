@@ -1,53 +1,91 @@
 // script.js 完全整理版
-// ・Googleスプレッドシート連携
-// ・複数チェックフィルター
+// ・Googleスプレッドシート読込
+// ・キャラ並び番号対応（表示時非表示）
+// ・チェックボックス複数絞り込み
 // ・弾見出し
-// ・求ボタン単独動作
-// ・1枚目からダブり
+// ・所持数管理
+// ・求管理
+// ・未所持モノクロ
 // ・メモ保存
 // ・画像保存
 
 let cards = [];
-let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
+let saveData =
+  JSON.parse(localStorage.getItem("aipriData")) || {};
 
-const SHEET_ID = "1hVOnMYmMKbCbHcqVMNKqYPKtcCjOwq3S5ktDiC8n3zU";
+const SHEET_ID =
+"1hVOnMYmMKbCbHcqVMNKqYPKtcCjOwq3S5ktDiC8n3zU";
+
 const GID = "0";
 
 const CSV_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
-// ------------------ 要素取得 ------------------
+// -------------------- 要素 --------------------
 
-const cardList   = document.getElementById("cardList");
-const searchBox  = document.getElementById("searchBox");
+const cardList  = document.getElementById("cardList");
+const searchBox = document.getElementById("searchBox");
 
-const dupOnly    = document.getElementById("dupOnly");
-const wantOnly   = document.getElementById("wantOnly");
-const noneOnly   = document.getElementById("noneOnly");
+const dupOnly  = document.getElementById("dupOnly");
+const wantOnly = document.getElementById("wantOnly");
+const noneOnly = document.getElementById("noneOnly");
 
-// ------------------ 初期読込 ------------------
+// -------------------- 共通 --------------------
+
+// 011_ひまり → ひまり
+function cleanName(name){
+
+  if(!name) return "";
+
+  return String(name)
+    .replace(/^\d+\s*[_-]?\s*/, "")
+    .trim();
+}
+
+function save(){
+  localStorage.setItem(
+    "aipriData",
+    JSON.stringify(saveData)
+  );
+}
+
+function unique(arr){
+  return [...new Set(arr)]
+    .filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,"ja"));
+}
+
+function selectedValues(name){
+  return [...document.querySelectorAll("." + name + ":checked")]
+    .map(el=>el.value);
+}
+
+// -------------------- 読込 --------------------
 
 fetch(CSV_URL)
-.then(r => r.text())
-.then(csv => {
+.then(r=>r.text())
+.then(csv=>{
+
   cards = csvToJson(csv);
+
   makeFilters();
   renderCards();
+
 });
 
-// ------------------ CSV変換 ------------------
+// -------------------- CSV --------------------
 
 function csvToJson(csv){
 
   const lines = csv.trim().split("\n");
-  const headers = splitCSV(lines[0]);
+  const head = splitCSV(lines[0]);
 
-  return lines.slice(1).map(line => {
+  return lines.slice(1).map(line=>{
 
     const cols = splitCSV(line);
     let obj = {};
 
-    headers.forEach((h,i)=>{
+    head.forEach((h,i)=>{
       obj[h.trim()] = cols[i]?.trim() || "";
     });
 
@@ -57,7 +95,7 @@ function csvToJson(csv){
 
 function splitCSV(str){
 
-  const result = [];
+  let result = [];
   let current = "";
   let inside = false;
 
@@ -79,25 +117,25 @@ function splitCSV(str){
   return result;
 }
 
-// ------------------ フィルター生成 ------------------
+// -------------------- フィルター --------------------
 
 function makeFilters(){
 
   makeCheckGroup(
     "rarityChecks",
-    unique(cards.map(c => c.rarity)),
+    unique(cards.map(c=>c.rarity)),
     "rarity"
   );
 
   makeCheckGroup(
     "waveChecks",
-    unique(cards.map(c => c.wave)),
+    unique(cards.map(c=>c.wave)),
     "wave"
   );
 
   makeCheckGroup(
     "characterChecks",
-    unique(cards.map(c => c.character)),
+    unique(cards.map(c=>c.character)),
     "character"
   );
 }
@@ -105,77 +143,97 @@ function makeFilters(){
 function makeCheckGroup(id,list,name){
 
   const area = document.getElementById(id);
+  area.innerHTML = "";
 
   list.forEach(v=>{
 
-    const labelText = v.replace(/^\d+_/, "");
+    const showText =
+      name === "character"
+      ? cleanName(v)
+      : v;
 
-    const label = document.createElement("label");
+    const label =
+      document.createElement("label");
 
-    label.innerHTML =
-      `<input type="checkbox"
-              class="${name}"
-              value="${v}"
-              checked> ${labelText}`;
+    label.innerHTML = `
+      <input type="checkbox"
+             class="${name}"
+             value="${v}"
+             checked>
+      ${showText}
+    `;
 
     area.appendChild(label);
+
   });
 
-  area.querySelectorAll("input").forEach(el=>{
-    el.addEventListener("change",renderCards);
-  });
+  area.querySelectorAll("input")
+    .forEach(el=>{
+      el.addEventListener("change",renderCards);
+    });
 }
 
-function unique(arr){
-  return [...new Set(arr)]
-    .filter(Boolean)
-    .sort((a,b)=>a.localeCompare(b,"ja"));
-}
-
-function selectedValues(name){
-  return [...document.querySelectorAll("." + name + ":checked")]
-    .map(el => el.value);
-}
-
-// ------------------ 描画 ------------------
+// -------------------- 描画 --------------------
 
 function renderCards(){
 
   let list = [...cards];
 
   // 検索
-  const key = searchBox.value.toLowerCase();
+  const key =
+    searchBox.value.toLowerCase();
 
   if(key){
-    list = list.filter(c =>
+
+    list = list.filter(c=>
+
       c.id.toLowerCase().includes(key) ||
+
       c.dress.toLowerCase().includes(key) ||
-      c.character.toLowerCase().includes(key)
+
+      cleanName(c.character)
+      .toLowerCase()
+      .includes(key)
+
     );
   }
 
-  // チェックボックス絞り込み
-  const rarity    = selectedValues("rarity");
-  const wave      = selectedValues("wave");
-  const character = selectedValues("character");
+  // チェック絞り込み
+  const rarity =
+    selectedValues("rarity");
 
-  list = list.filter(c =>
+  const wave =
+    selectedValues("wave");
+
+  const character =
+    selectedValues("character");
+
+  list = list.filter(c=>
+
     rarity.includes(c.rarity) &&
     wave.includes(c.wave) &&
     character.includes(c.character)
+
   );
 
-  // 所持系絞り込み
+  // 状態絞り込み
   list = list.filter(card=>{
 
-    const d = saveData[card.id] ||
+    const d =
+      saveData[card.id] ||
       {count:0,want:false,memo:""};
 
-    if(dupOnly.checked  && d.count < 1) return false;
-    if(wantOnly.checked && !d.want) return false;
-    if(noneOnly.checked && d.count > 0) return false;
+    if(dupOnly.checked &&
+       d.count < 1) return false;
+
+    if(wantOnly.checked &&
+       !d.want) return false;
+
+    if(noneOnly.checked &&
+       d.count > 0) return false;
 
     return true;
+
   });
 
   // 弾順
@@ -191,7 +249,8 @@ function renderCards(){
 
   list.forEach(card=>{
 
-    const data = saveData[card.id] ||
+    const data =
+      saveData[card.id] ||
       {count:0,want:false,memo:""};
 
     if(data.count > 0) own++;
@@ -202,96 +261,142 @@ function renderCards(){
 
       currentWave = card.wave;
 
-      const title = document.createElement("div");
-      title.className = "wave-title";
-      title.textContent = "💖 " + currentWave;
+      const title =
+        document.createElement("div");
+
+      title.className =
+        "wave-title";
+
+      title.textContent =
+        "💖 " + currentWave;
 
       cardList.appendChild(title);
     }
 
-    // カード生成
-    const div = document.createElement("div");
+    // カード
+    const div =
+      document.createElement("div");
+
     div.className = "card";
 
     if(data.count === 0){
       div.classList.add("no-own");
     }
 
- div.innerHTML = `
-  <button class="want">
-    ${data.want ? "💖":"🤍"}
-  </button>
+    div.innerHTML = `
 
-  <img src="img/${card.image}"
-       onerror="this.src=''">
+      <button class="want">
+        ${data.want ? "💖":"🤍"}
+      </button>
 
-  <div class="card-id">${card.id}</div>
-  <div class="dress">${card.dress}</div>
-  <div>${card.character.replace(/^\d+_/, "")}</div>
-  <div>${card.rarity}</div>
+      <img src="img/${card.id}"
+           onerror="this.src=''">
 
-  <div class="count-box">
-    <button class="minus">-</button>
+      <div class="card-id">
+        ${card.id}
+      </div>
 
-    <input type="number"
-           min="0"
-           max="99"
-           value="${data.count}">
+      <div class="dress">
+        ${card.dress}
+      </div>
 
-    <button class="plus">+</button>
-  </div>
+      <div>
+        ${cleanName(card.character)}
+      </div>
 
-  <input class="memo"
-         maxlength="20"
-         placeholder="メモ20文字"
-         value="${data.memo}">
-`;
+      <div>
+        ${card.rarity}
+      </div>
 
-    // 要素取得
-    const plus  = div.querySelector(".plus");
-    const minus = div.querySelector(".minus");
-    const num   = div.querySelector("input[type=number]");
-    const heart = div.querySelector(".want");
-    const memo  = div.querySelector(".memo");
+      <div class="count-box">
 
-    // +ボタン
+        <button class="minus">
+          -
+        </button>
+
+        <input type="number"
+               min="0"
+               max="99"
+               value="${data.count}">
+
+        <button class="plus">
+          +
+        </button>
+
+      </div>
+
+      <input class="memo"
+             maxlength="20"
+             placeholder="メモ20文字"
+             value="${data.memo}">
+    `;
+
+    const plus =
+      div.querySelector(".plus");
+
+    const minus =
+      div.querySelector(".minus");
+
+    const num =
+      div.querySelector(
+        "input[type=number]"
+      );
+
+    const heart =
+      div.querySelector(".want");
+
+    const memo =
+      div.querySelector(".memo");
+
     plus.onclick = ()=>{
       data.count++;
       update();
     };
 
-    // -ボタン
     minus.onclick = ()=>{
+
       if(data.count > 0){
         data.count--;
       }
+
       update();
     };
 
-    // 数値入力
     num.onchange = ()=>{
-      data.count = Number(num.value) || 0;
+
+      data.count =
+        Number(num.value) || 0;
+
       update();
     };
 
-    // 求ボタン
     heart.onclick = (e)=>{
+
       e.preventDefault();
       e.stopPropagation();
 
-      data.want = !data.want;
+      data.want =
+        !data.want;
+
       update();
     };
 
-    // メモ
     memo.oninput = ()=>{
-      data.memo = memo.value.slice(0,20);
-      saveData[card.id] = data;
+
+      data.memo =
+        memo.value.slice(0,20);
+
+      saveData[card.id] =
+        data;
+
       save();
     };
 
     function update(){
-      saveData[card.id] = data;
+
+      saveData[card.id] =
+        data;
+
       save();
       renderCards();
     }
@@ -301,61 +406,71 @@ function renderCards(){
   });
 
   // 件数表示
-  document.getElementById("totalCards").textContent =
+  document.getElementById(
+    "totalCards"
+  ).textContent =
     list.length + "件表示";
 
-  document.getElementById("ownedCards").textContent =
+  document.getElementById(
+    "ownedCards"
+  ).textContent =
     "所持 " + own;
 
-  document.getElementById("wantedCards").textContent =
+  document.getElementById(
+    "wantedCards"
+  ).textContent =
     "求 " + want;
 }
 
-// ------------------ 保存 ------------------
-
-function save(){
-  localStorage.setItem(
-    "aipriData",
-    JSON.stringify(saveData)
-  );
-}
-
-// ------------------ 一括ON/OFF ------------------
+// -------------------- 一括選択 --------------------
 
 function toggleAll(type,state){
 
   document
-    .querySelectorAll("." + type)
-    .forEach(el=>{
+   .querySelectorAll("." + type)
+   .forEach(el=>{
       el.checked = state;
-    });
+   });
 
   renderCards();
 }
 
 window.toggleAll = toggleAll;
 
-// ------------------ イベント ------------------
+// -------------------- イベント --------------------
 
 [
  searchBox,
  dupOnly,
  wantOnly,
  noneOnly
+
 ].forEach(el=>{
 
-  el.addEventListener("input",renderCards);
-  el.addEventListener("change",renderCards);
+  el.addEventListener(
+    "input",
+    renderCards
+  );
+
+  el.addEventListener(
+    "change",
+    renderCards
+  );
 
 });
 
-// ------------------ 画像保存 ------------------
+// -------------------- 画像保存 --------------------
 
-document.getElementById("saveAll").onclick = ()=>{
+document.getElementById(
+  "saveAll"
+).onclick = ()=>{
+
   capture("一覧");
 };
 
-document.getElementById("saveWant").onclick = ()=>{
+document.getElementById(
+  "saveWant"
+).onclick = ()=>{
 
   wantOnly.checked = true;
   renderCards();
@@ -367,36 +482,61 @@ document.getElementById("saveWant").onclick = ()=>{
 
 function capture(name){
 
-  const area = document.getElementById("captureArea");
+  const area =
+    document.getElementById(
+      "captureArea"
+    );
 
-  area.classList.add("capture-mode");
+  area.classList.add(
+    "capture-mode"
+  );
 
-  // メモ未入力を空白化
-  document.querySelectorAll(".memo").forEach(el=>{
-    if(el.value.trim()===""){
-      el.dataset.old = el.placeholder;
-      el.placeholder = "";
-    }
-  });
+  document
+   .querySelectorAll(".memo")
+   .forEach(el=>{
+
+     if(el.value.trim()===""){
+       el.dataset.old =
+         el.placeholder;
+
+       el.placeholder = "";
+     }
+
+   });
 
   html2canvas(area,{
-    scale:3,
-    backgroundColor:"#ffffff",
-    useCORS:true
+    scale:2,
+    useCORS:true,
+    backgroundColor:"#fff"
   }).then(canvas=>{
 
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = name + ".png";
+    const a =
+      document.createElement("a");
+
+    a.href =
+      canvas.toDataURL(
+        "image/png"
+      );
+
+    a.download =
+      name + ".png";
+
     a.click();
 
-    area.classList.remove("capture-mode");
+    area.classList.remove(
+      "capture-mode"
+    );
 
-    document.querySelectorAll(".memo").forEach(el=>{
-      if(el.dataset.old){
-        el.placeholder = el.dataset.old;
-      }
-    });
+    document
+     .querySelectorAll(".memo")
+     .forEach(el=>{
+
+       if(el.dataset.old){
+         el.placeholder =
+           el.dataset.old;
+       }
+
+     });
 
   });
 }
