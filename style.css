@@ -1,11 +1,13 @@
-/* style.css 全面改修版 */
+/* style.css 完全整理版 */
 
 body{
   margin:0;
-  font-family:"Yu Gothic",sans-serif;
+  font-family:"Yu Gothic","Hiragino Sans",sans-serif;
   background:#fff8fc;
   color:#333;
 }
+
+/* ---------------- ヘッダー ---------------- */
 
 header{
   background:linear-gradient(90deg,#ffb6d9,#ffd9ee);
@@ -24,6 +26,8 @@ header p{
   font-size:12px;
 }
 
+/* ---------------- ツールバー ---------------- */
+
 .toolbar,
 .toolbar2{
   display:flex;
@@ -31,47 +35,101 @@ header p{
   gap:8px;
   padding:10px;
   background:#fff;
-  position:sticky;
-  top:0;
-  z-index:20;
   border-bottom:1px solid #eee;
 }
 
+.toolbar{
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
 .toolbar2{
-  top:62px;
+  position:sticky;
+  top:70px;
+  z-index:19;
 }
 
 select,
 input[type="text"],
 input[type="number"],
 button{
-  padding:8px;
   border:1px solid #ddd;
   border-radius:10px;
+  padding:8px;
   font-size:13px;
+  box-sizing:border-box;
 }
 
 button{
   background:#ff6eb4;
   color:#fff;
   border:none;
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:.9;
 }
 
 label{
-  font-size:13px;
   display:flex;
   align-items:center;
   gap:4px;
+  font-size:13px;
 }
+
+/* ---------------- フィルター ---------------- */
+
+.filter-block{
+  width:100%;
+  background:#fff;
+}
+
+.filter-title,
+summary{
+  font-weight:bold;
+  font-size:13px;
+  margin-bottom:6px;
+  cursor:pointer;
+}
+
+.check-wrap{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.check-wrap label{
+  background:#ffe7f3;
+  padding:5px 8px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.mini-btns{
+  display:flex;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+.mini-btns button{
+  padding:4px 8px;
+  font-size:11px;
+}
+
+/* ---------------- 状態表示 ---------------- */
 
 .status{
   display:flex;
   justify-content:space-around;
-  background:#fff;
   padding:8px;
   font-size:13px;
+  background:#fff;
   border-bottom:1px solid #eee;
 }
+
+/* ---------------- カード一覧 ---------------- */
 
 #cardList{
   display:grid;
@@ -80,93 +138,17 @@ label{
   padding:8px;
 }
 
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:6px;
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-  text-align:center;
-  position:relative;
-  font-size:11px;
-}
-
-.card img{
-  width:100%;
-  aspect-ratio:3/4;
-  object-fit:cover;
-  border-radius:8px;
-  background:#eee;
-}
-
-.no-own img{
-  filter:grayscale(100%);
-  opacity:.55;
-}
-
-.card-id{
-  font-size:10px;
-  margin-top:4px;
-}
-
-.dress{
-  font-size:11px;
-  font-weight:bold;
-  min-height:28px;
-}
-
-.count-box{
-  display:flex;
-  gap:4px;
-  justify-content:center;
-  margin-top:4px;
-}
-
-.count-box button{
-  padding:3px 6px;
-  font-size:12px;
-}
-
-.count-box input{
-  width:38px;
-  text-align:center;
-  padding:3px;
-}
-
-.memo{
-  width:100%;
-  margin-top:4px;
-  font-size:10px;
-  padding:4px;
-  box-sizing:border-box;
-}
-
-.want{
-  position:absolute;
-  top:6px;
-  right:6px;
-  background:#fff;
-  border:none;
-  font-size:16px;
-  padding:0;
-}
-
-.duplicate{
-  color:#00a86b;
-  font-size:10px;
-  margin-top:2px;
-}
-
+/* PCは8列 */
 @media(min-width:900px){
   #cardList{
     grid-template-columns:repeat(8,1fr);
   }
 }
 
-/* style.css に追加・修正版 */
-/* 見出しが出ない場合ほぼCSS不足なのでこれを末尾追加 */
+/* ---------------- 弾見出し ---------------- */
 
 .wave-title{
-  grid-column: 1 / -1;
+  grid-column:1 / -1;
   display:block;
   width:100%;
   box-sizing:border-box;
@@ -180,20 +162,39 @@ label{
   border-radius:12px;
   font-size:14px;
   font-weight:bold;
-  letter-spacing:0.5px;
 
   box-shadow:0 2px 6px rgba(0,0,0,.08);
 }
 
-/* ダブり強調（1枚目から対応） */
-.duplicate{
-  color:#00a86b;
-  font-size:10px;
-  font-weight:bold;
-  margin-top:2px;
+/* ---------------- カード ---------------- */
+
+.card{
+  position:relative;
+  background:#fff;
+  border-radius:12px;
+  padding:8px;
+  min-height:340px;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  text-align:center;
+  font-size:11px;
 }
 
-/* 求ボタン押しやすく */
+/* 未所持モノクロ */
+.no-own img{
+  filter:grayscale(100%);
+  opacity:.55;
+}
+
+/* 画像 */
+.card img{
+  width:100%;
+  aspect-ratio:3/4;
+  object-fit:cover;
+  border-radius:8px;
+  background:#eee;
+}
+
+/* 求ボタン */
 .want{
   position:absolute;
   top:6px;
@@ -202,15 +203,110 @@ label{
   height:28px;
   border-radius:50%;
   background:#fff;
-  border:none;
+  color:#ff4fa3;
   font-size:16px;
-  cursor:pointer;
-  z-index:5;
   line-height:28px;
   padding:0;
+  z-index:5;
 }
 
-/* カード位置基準 */
-.card{
-  position:relative;
+/* ID */
+.card-id{
+  font-size:11px;
+  margin-top:4px;
+}
+
+/* 衣装名 */
+.dress{
+  font-size:12px;
+  font-weight:bold;
+  line-height:1.2;
+  min-height:32px;
+  margin-top:2px;
+}
+
+/* ---------------- 枚数操作 ---------------- */
+
+.count-box{
+  display:flex;
+  gap:4px;
+  justify-content:center;
+  margin-top:6px;
+}
+
+.count-box button{
+  padding:4px 7px;
+  font-size:13px;
+}
+
+.count-box input{
+  width:42px;
+  height:28px;
+  font-size:13px;
+  text-align:center;
+}
+
+/* ---------------- メモ欄 ---------------- */
+
+.memo{
+  width:100%;
+  height:30px;
+  margin-top:6px;
+  padding:4px;
+  font-size:11px;
+  box-sizing:border-box;
+}
+
+/* ---------------- 画像保存モード ---------------- */
+
+.capture-mode .card{
+  min-height:380px;
+}
+
+.capture-mode .memo{
+  height:34px;
+  font-size:12px;
+}
+
+.capture-mode .count-box input{
+  height:30px;
+  font-size:14px;
+}
+
+.capture-mode #cardList{
+  gap:10px;
+}
+
+/* ---------------- スマホ最適化 ---------------- */
+
+@media(max-width:600px){
+
+  header h1{
+    font-size:17px;
+  }
+
+  .toolbar,
+  .toolbar2{
+    gap:6px;
+    padding:8px;
+  }
+
+  button,
+  input,
+  select{
+    font-size:12px;
+  }
+
+  .card{
+    min-height:320px;
+    padding:6px;
+  }
+
+  .dress{
+    font-size:11px;
+  }
+
+  .memo{
+    font-size:10px;
+  }
 }
