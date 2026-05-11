@@ -314,7 +314,7 @@ summary{
 /* ---------------- 保存画像専用 ---------------- */
 
 .capture-mode #cardList{
-  grid-template-columns:repeat(5,1fr) !important;
+  grid-template-columns:repeat(10,1fr) !important;
   gap:14px !important;
 }
 
@@ -340,13 +340,13 @@ summary{
 
 .capture-mode .count-box button{
   width:34px;
-  height:34px;
+  height:40px;
   font-size:18px;
 }
 
 .capture-mode .count-box input{
   width:56px;
-  height:34px;
+  height:40px;
   font-size:18px;
 }
 
