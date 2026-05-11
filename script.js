@@ -121,95 +121,118 @@ function renderCards(){
     return true;
   });
 
-  cardList.innerHTML = "";
+// renderCards() 内の cardList描画部分をこの内容に置き換え
 
-  let own = 0;
-  let want = 0;
+cardList.innerHTML = "";
 
-  list.forEach(card=>{
+let own = 0;
+let want = 0;
+let currentWave = "";
 
-    const data = saveData[card.id] || {count:0,want:false,memo:""};
+list.forEach(card=>{
 
-    if(data.count>0) own++;
-    if(data.want) want++;
+  const data = saveData[card.id] || {
+    count:0,
+    want:false,
+    memo:""
+  };
 
-    const div = document.createElement("div");
-    div.className = "card";
+  if(data.count > 0) own++;
+  if(data.want) want++;
 
-    if(data.count===0) div.classList.add("no-own");
+  // 弾見出し追加
+  if(card.wave !== currentWave){
 
-    div.innerHTML = `
-      <button class="want">${data.want?"💖":"🤍"}</button>
-      <img src="img/${card.image}" onerror="this.src=''">
-      <div class="card-id">${card.id}</div>
-      <div class="dress">${card.dress}</div>
-      <div>${card.character}</div>
-      <div>${card.rarity}</div>
+    currentWave = card.wave;
 
-      <div class="count-box">
-        <button class="minus">-</button>
-        <input type="number" min="0" max="99" value="${data.count}">
-        <button class="plus">+</button>
-      </div>
+    const title = document.createElement("div");
+    title.className = "wave-title";
+    title.textContent = "💖 " + currentWave;
 
-      ${data.count>=2 ? '<div class="duplicate">ダブり</div>' : ''}
+    cardList.appendChild(title);
+  }
 
-      <input class="memo" maxlength="20"
-       placeholder="メモ20文字"
-       value="${data.memo||''}">
-    `;
+  const div = document.createElement("div");
+  div.className = "card";
 
-    const plus = div.querySelector(".plus");
-    const minus = div.querySelector(".minus");
-    const num = div.querySelector("input[type=number]");
-    const heart = div.querySelector(".want");
-    const memo = div.querySelector(".memo");
+  if(data.count === 0){
+    div.classList.add("no-own");
+  }
 
-    plus.onclick=()=>{
-      data.count++;
-      update();
-    };
+  div.innerHTML = `
+    <button class="want">${data.want ? "💖":"🤍"}</button>
+    <img src="img/${card.id}_O.jpg" onerror="this.src=''">
 
-    minus.onclick=()=>{
-      if(data.count>0) data.count--;
-      update();
-    };
+    <div class="card-id">${card.id}</div>
+    <div class="dress">${card.dress}</div>
+    <div>${card.character}</div>
+    <div>${card.rarity}</div>
 
-    num.onchange=()=>{
-      data.count = Number(num.value)||0;
-      update();
-    };
+    <div class="count-box">
+      <button class="minus">-</button>
+      <input type="number" min="0" max="99" value="${data.count}">
+      <button class="plus">+</button>
+    </div>
 
-    heart.onclick=(e)=>{
-      e.stopPropagation();
-      data.want=!data.want;
-      update();
-    };
+    ${data.count >= 2 ? '<div class="duplicate">ダブり</div>' : ''}
 
-    memo.oninput=()=>{
-      data.memo = memo.value.slice(0,20);
-      saveData[card.id]=data;
-      save();
-    };
+    <input class="memo"
+      maxlength="20"
+      placeholder="メモ20文字"
+      value="${data.memo || ''}">
+  `;
 
-    function update(){
-      saveData[card.id]=data;
-      save();
-      renderCards();
-    }
+  const plus = div.querySelector(".plus");
+  const minus = div.querySelector(".minus");
+  const num = div.querySelector("input[type=number]");
+  const heart = div.querySelector(".want");
+  const memo = div.querySelector(".memo");
 
-    cardList.appendChild(div);
+  plus.onclick = ()=>{
+    data.count++;
+    update();
+  };
 
-  });
+  minus.onclick = ()=>{
+    if(data.count > 0) data.count--;
+    update();
+  };
 
-  document.getElementById("totalCards").textContent =
-    list.length + "件表示";
+  num.onchange = ()=>{
+    data.count = Number(num.value) || 0;
+    update();
+  };
 
-  document.getElementById("ownedCards").textContent =
-    "所持 " + own;
+  heart.onclick = (e)=>{
+    e.stopPropagation();
+    data.want = !data.want;
+    update();
+  };
 
-  document.getElementById("wantedCards").textContent =
-    "求 " + want;
+  memo.oninput = ()=>{
+    data.memo = memo.value.slice(0,20);
+    saveData[card.id] = data;
+    save();
+  };
+
+  function update(){
+    saveData[card.id] = data;
+    save();
+    renderCards();
+  }
+
+  cardList.appendChild(div);
+
+});
+
+document.getElementById("totalCards").textContent =
+  list.length + "件表示";
+
+document.getElementById("ownedCards").textContent =
+  "所持 " + own;
+
+document.getElementById("wantedCards").textContent =
+  "求 " + want;
 }
 
 function save(){
