@@ -367,17 +367,21 @@ document.getElementById("saveWant").onclick = ()=>{
 function capture(name){
 
   const area = document.getElementById("captureArea");
-  const oldWidth = area.style.width;
-  const oldZoom  = area.style.zoom;
 
-  // スマホでもPC幅で撮影
-  area.style.width = "1600px";
-  area.style.zoom = "1";
+  area.classList.add("capture-mode");
+
+  // メモ未入力を空白化
+  document.querySelectorAll(".memo").forEach(el=>{
+    if(el.value.trim()===""){
+      el.dataset.old = el.placeholder;
+      el.placeholder = "";
+    }
+  });
 
   html2canvas(area,{
-    scale:2,
-    useCORS:true,
-    backgroundColor:"#ffffff"
+    scale:3,
+    backgroundColor:"#ffffff",
+    useCORS:true
   }).then(canvas=>{
 
     const a = document.createElement("a");
@@ -385,8 +389,13 @@ function capture(name){
     a.download = name + ".png";
     a.click();
 
-    // 元に戻す
-    area.style.width = oldWidth;
-    area.style.zoom = oldZoom;
+    area.classList.remove("capture-mode");
+
+    document.querySelectorAll(".memo").forEach(el=>{
+      if(el.dataset.old){
+        el.placeholder = el.dataset.old;
+      }
+    });
+
   });
 }
