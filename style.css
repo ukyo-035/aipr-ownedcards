@@ -161,3 +161,14 @@ label{
     grid-template-columns:repeat(8,1fr);
   }
 }
+
+.wave-title{
+  grid-column:1 / -1;
+  background:#ffd9ee;
+  color:#c2185b;
+  padding:8px 12px;
+  border-radius:10px;
+  font-weight:bold;
+  margin-top:8px;
+  font-size:14px;
+}
