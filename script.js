@@ -216,39 +216,35 @@ function renderCards(){
       div.classList.add("no-own");
     }
 
-    div.innerHTML = `
-      <button class="want">
-        ${data.want ? "💖":"🤍"}
-      </button>
+ div.innerHTML = `
+  <button class="want">
+    ${data.want ? "💖":"🤍"}
+  </button>
 
-      <img src="img/${card.image}"
-           onerror="this.src=''">
+  <img src="img/${card.id}_O.jpg"
+       onerror="this.src=''">
 
-      <div class="card-id">${card.id}</div>
-      <div class="dress">${card.dress}</div>
-      <div>${card.character}</div>
-      <div>${card.rarity}</div>
+  <div class="card-id">${card.id}</div>
+  <div class="dress">${card.dress}</div>
+  <div>${card.character}</div>
+  <div>${card.rarity}</div>
 
-      <div class="count-box">
-        <button class="minus">-</button>
+  <div class="count-box">
+    <button class="minus">-</button>
 
-        <input type="number"
-               min="0"
-               max="99"
-               value="${data.count}">
+    <input type="number"
+           min="0"
+           max="99"
+           value="${data.count}">
 
-        <button class="plus">+</button>
-      </div>
+    <button class="plus">+</button>
+  </div>
 
-      ${data.count >= 1
-        ? '<div class="duplicate">ダブり</div>'
-        : ''}
-
-      <input class="memo"
-             maxlength="20"
-             placeholder="メモ20文字"
-             value="${data.memo}">
-    `;
+  <input class="memo"
+         maxlength="20"
+         placeholder="メモ20文字"
+         value="${data.memo}">
+`;
 
     // 要素取得
     const plus  = div.querySelector(".plus");
@@ -370,15 +366,27 @@ document.getElementById("saveWant").onclick = ()=>{
 
 function capture(name){
 
-  html2canvas(
-    document.getElementById("captureArea")
-  ).then(canvas=>{
+  const area = document.getElementById("captureArea");
+  const oldWidth = area.style.width;
+  const oldZoom  = area.style.zoom;
+
+  // スマホでもPC幅で撮影
+  area.style.width = "1600px";
+  area.style.zoom = "1";
+
+  html2canvas(area,{
+    scale:2,
+    useCORS:true,
+    backgroundColor:"#ffffff"
+  }).then(canvas=>{
 
     const a = document.createElement("a");
-
-    a.href = canvas.toDataURL();
+    a.href = canvas.toDataURL("image/png");
     a.download = name + ".png";
     a.click();
 
+    // 元に戻す
+    area.style.width = oldWidth;
+    area.style.zoom = oldZoom;
   });
 }
