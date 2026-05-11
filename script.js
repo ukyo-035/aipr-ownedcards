@@ -253,8 +253,14 @@ function renderCards(){
       saveData[card.id] ||
       {count:0,want:false,memo:""};
 
-    if(data.count > 0) own++;
-    if(data.want) want++;
+    if(data.count === 0 && !data.want){
+  div.classList.add("no-own");
+}
+
+// ↓ 求カードなら枠追加
+if(data.want){
+  div.classList.add("wanting");
+}
 
     // 見出し
     if(card.wave !== currentWave){
