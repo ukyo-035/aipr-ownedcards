@@ -1,11 +1,11 @@
 // script.js 完全整理版
 // ・Googleスプレッドシート読込
-// ・キャラ並び番号対応（表示時非表示）
-// ・チェックボックス複数絞り込み
+// ・キャラ番号付き管理（表示時番号非表示）
+// ・複数チェックフィルター
 // ・弾見出し
 // ・所持数管理
-// ・求管理
 // ・未所持モノクロ
+// ・求カードはカラー＋ピンク枠
 // ・メモ保存
 // ・画像保存
 
@@ -21,7 +21,7 @@ const GID = "0";
 const CSV_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
-// -------------------- 要素 --------------------
+// ---------------- 要素 ----------------
 
 const cardList  = document.getElementById("cardList");
 const searchBox = document.getElementById("searchBox");
@@ -30,7 +30,7 @@ const dupOnly  = document.getElementById("dupOnly");
 const wantOnly = document.getElementById("wantOnly");
 const noneOnly = document.getElementById("noneOnly");
 
-// -------------------- 共通 --------------------
+// ---------------- 共通 ----------------
 
 // 011_ひまり → ひまり
 function cleanName(name){
@@ -38,11 +38,13 @@ function cleanName(name){
   if(!name) return "";
 
   return String(name)
+    .replace(/^[^\d]*/, "")
     .replace(/^\d+\s*[_-]?\s*/, "")
     .trim();
 }
 
 function save(){
+
   localStorage.setItem(
     "aipriData",
     JSON.stringify(saveData)
@@ -50,17 +52,19 @@ function save(){
 }
 
 function unique(arr){
+
   return [...new Set(arr)]
     .filter(Boolean)
     .sort((a,b)=>a.localeCompare(b,"ja"));
 }
 
 function selectedValues(name){
+
   return [...document.querySelectorAll("." + name + ":checked")]
     .map(el=>el.value);
 }
 
-// -------------------- 読込 --------------------
+// ---------------- 読込 ----------------
 
 fetch(CSV_URL)
 .then(r=>r.text())
@@ -73,7 +77,7 @@ fetch(CSV_URL)
 
 });
 
-// -------------------- CSV --------------------
+// ---------------- CSV ----------------
 
 function csvToJson(csv){
 
@@ -105,6 +109,7 @@ function splitCSV(str){
       inside = !inside;
 
     }else if(c === "," && !inside){
+
       result.push(current);
       current = "";
 
@@ -117,7 +122,7 @@ function splitCSV(str){
   return result;
 }
 
-// -------------------- フィルター --------------------
+// ---------------- フィルター ----------------
 
 function makeFilters(){
 
@@ -142,7 +147,9 @@ function makeFilters(){
 
 function makeCheckGroup(id,list,name){
 
-  const area = document.getElementById(id);
+  const area =
+    document.getElementById(id);
+
   area.innerHTML = "";
 
   list.forEach(v=>{
@@ -168,12 +175,15 @@ function makeCheckGroup(id,list,name){
   });
 
   area.querySelectorAll("input")
-    .forEach(el=>{
-      el.addEventListener("change",renderCards);
-    });
+   .forEach(el=>{
+      el.addEventListener(
+        "change",
+        renderCards
+      );
+   });
 }
 
-// -------------------- 描画 --------------------
+// ---------------- 描画 ----------------
 
 function renderCards(){
 
@@ -198,7 +208,7 @@ function renderCards(){
     );
   }
 
-  // チェック絞り込み
+  // チェック
   const rarity =
     selectedValues("rarity");
 
@@ -233,7 +243,6 @@ function renderCards(){
        d.count > 0) return false;
 
     return true;
-
   });
 
   // 弾順
@@ -253,14 +262,8 @@ function renderCards(){
       saveData[card.id] ||
       {count:0,want:false,memo:""};
 
-    if(data.count === 0 && !data.want){
-      div.classList.add("no-own");
-      }
-
-    // ↓ 求カードなら枠追加
-    if(data.want){
-      div.classList.add("wanting");
-      }
+    if(data.count > 0) own++;
+    if(data.want) want++;
 
     // 見出し
     if(card.wave !== currentWave){
@@ -285,8 +288,14 @@ function renderCards(){
 
     div.className = "card";
 
-    if(data.count === 0){
+    // 未所持＆求なし → モノクロ
+    if(data.count === 0 && !data.want){
       div.classList.add("no-own");
+    }
+
+    // 求カード → ピンク枠
+    if(data.want){
+      div.classList.add("wanting");
     }
 
     div.innerHTML = `
@@ -295,7 +304,7 @@ function renderCards(){
         ${data.want ? "💖":"🤍"}
       </button>
 
-      <img src="img/${card.image}"
+      <img src="img/${card.id}_O.jpg"
            onerror="this.src=''">
 
       <div class="card-id">
@@ -316,18 +325,14 @@ function renderCards(){
 
       <div class="count-box">
 
-        <button class="minus">
-          -
-        </button>
+        <button class="minus">-</button>
 
         <input type="number"
                min="0"
                max="99"
                value="${data.count}">
 
-        <button class="plus">
-          +
-        </button>
+        <button class="plus">+</button>
 
       </div>
 
@@ -381,9 +386,7 @@ function renderCards(){
       e.preventDefault();
       e.stopPropagation();
 
-      data.want =
-        !data.want;
-
+      data.want = !data.want;
       update();
     };
 
@@ -392,17 +395,13 @@ function renderCards(){
       data.memo =
         memo.value.slice(0,20);
 
-      saveData[card.id] =
-        data;
-
+      saveData[card.id] = data;
       save();
     };
 
     function update(){
 
-      saveData[card.id] =
-        data;
-
+      saveData[card.id] = data;
       save();
       renderCards();
     }
@@ -411,7 +410,7 @@ function renderCards(){
 
   });
 
-  // 件数表示
+  // 件数
   document.getElementById(
     "totalCards"
   ).textContent =
@@ -428,7 +427,7 @@ function renderCards(){
     "求 " + want;
 }
 
-// -------------------- 一括選択 --------------------
+// ---------------- 一括選択 ----------------
 
 function toggleAll(type,state){
 
@@ -443,7 +442,7 @@ function toggleAll(type,state){
 
 window.toggleAll = toggleAll;
 
-// -------------------- イベント --------------------
+// ---------------- イベント ----------------
 
 [
  searchBox,
@@ -465,7 +464,7 @@ window.toggleAll = toggleAll;
 
 });
 
-// -------------------- 画像保存 --------------------
+// ---------------- 画像保存 ----------------
 
 document.getElementById(
   "saveAll"
