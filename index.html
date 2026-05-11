@@ -1,40 +1,63 @@
-<!-- index.html -->
+<!-- index.html 全面改修版 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>アイプリカード管理</title>
+<title>アイプリカード管理 完全版</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 
 <body>
 
 <header>
-<h1>ひみつのアイプリ / おねがいアイプリ</h1>
-<p>カード管理コレクション</p>
+  <h1>ひみつのアイプリ / おねがいアイプリ</h1>
+  <p>カード管理システム</p>
 </header>
 
-<section class="controls">
+<section class="toolbar">
 
-<select id="sortType">
-<option value="default">並び替え</option>
-<option value="character">キャラ順</option>
-<option value="wave">弾順</option>
-<option value="rarity">レア順</option>
+<select id="filterRarity">
+  <option value="">レア全て</option>
 </select>
 
-<input type="text" id="searchBox" placeholder="カードID検索">
+<select id="filterWave">
+  <option value="">弾全て</option>
+</select>
+
+<select id="filterCharacter">
+  <option value="">キャラ全て</option>
+</select>
+
+<label><input type="checkbox" id="dupOnly"> ダブり</label>
+<label><input type="checkbox" id="wantOnly"> 求</label>
+<label><input type="checkbox" id="noneOnly"> 未所持</label>
+
+<input type="text" id="searchBox" placeholder="ID・衣装名検索">
+
+</section>
+
+<section class="toolbar2">
+
+<button id="saveAll">一覧画像保存</button>
+<button id="saveWant">求カード画像</button>
 
 </section>
 
 <section class="status">
-<span id="totalCards">0枚</span>
-<span id="ownedCards">所持0</span>
-<span id="wantedCards">求0</span>
+  <span id="totalCards">0枚</span>
+  <span id="ownedCards">所持0</span>
+  <span id="wantedCards">求0</span>
 </section>
 
-<main id="cardList"></main>
+<main id="captureArea">
+  <section id="cardList"></section>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
 
 <script src="script.js"></script>
 </body>
