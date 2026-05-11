@@ -1,13 +1,12 @@
-<!-- index.html 完全動作版 -->
+<!-- index.html フィルター強化版 -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>アイプリカード管理 完全版</title>
+<title>アイプリカード管理</title>
 
 <link rel="stylesheet" href="style.css">
-
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 
@@ -20,17 +19,28 @@
 
 <section class="toolbar">
 
-<select id="filterRarity">
-<option value="">レア全て</option>
-</select>
+<div class="filter-block">
+<div class="filter-title">レア</div>
+<div id="rarityChecks" class="check-wrap"></div>
+</div>
 
-<select id="filterWave">
-<option value="">弾全て</option>
-</select>
+<details class="filter-block">
+<summary>弾フィルター</summary>
+<div class="mini-btns">
+<button type="button" onclick="toggleAll('wave',true)">全選択</button>
+<button type="button" onclick="toggleAll('wave',false)">全解除</button>
+</div>
+<div id="waveChecks" class="check-wrap"></div>
+</details>
 
-<select id="filterCharacter">
-<option value="">キャラ全て</option>
-</select>
+<details class="filter-block">
+<summary>キャラフィルター</summary>
+<div class="mini-btns">
+<button type="button" onclick="toggleAll('character',true)">全選択</button>
+<button type="button" onclick="toggleAll('character',false)">全解除</button>
+</div>
+<div id="characterChecks" class="check-wrap"></div>
+</details>
 
 <label><input type="checkbox" id="dupOnly">ダブり</label>
 <label><input type="checkbox" id="wantOnly">求</label>
@@ -46,7 +56,7 @@
 </section>
 
 <section class="status">
-<span id="totalCards">0枚</span>
+<span id="totalCards">0件表示</span>
 <span id="ownedCards">所持0</span>
 <span id="wantedCards">求0</span>
 </section>
