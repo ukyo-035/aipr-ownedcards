@@ -1,4 +1,4 @@
-// script.js 全面改修版
+// script.js フィルター強化完全版
 
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
@@ -10,10 +10,6 @@ const CSV_URL =
 
 const cardList = document.getElementById("cardList");
 const searchBox = document.getElementById("searchBox");
-
-const filterRarity = document.getElementById("filterRarity");
-const filterWave = document.getElementById("filterWave");
-const filterCharacter = document.getElementById("filterCharacter");
 
 const dupOnly = document.getElementById("dupOnly");
 const wantOnly = document.getElementById("wantOnly");
@@ -29,7 +25,7 @@ fetch(CSV_URL)
 
 function csvToJson(csv){
   const lines = csv.trim().split("\n");
-  const headers = lines[0].split(",");
+  const headers = splitCSV(lines[0]);
 
   return lines.slice(1).map(line=>{
     const cols = splitCSV(line);
@@ -61,19 +57,23 @@ function splitCSV(str){
 }
 
 function makeFilters(){
-
-  fillSelect(filterRarity, unique(cards.map(c=>c.rarity)));
-  fillSelect(filterWave, unique(cards.map(c=>c.wave)));
-  fillSelect(filterCharacter, unique(cards.map(c=>c.character)));
-
+  makeCheckGroup("rarityChecks", unique(cards.map(c=>c.rarity)), "rarity");
+  makeCheckGroup("waveChecks", unique(cards.map(c=>c.wave)), "wave");
+  makeCheckGroup("characterChecks", unique(cards.map(c=>c.character)), "character");
 }
 
-function fillSelect(target,list){
+function makeCheckGroup(id,list,name){
+  const area = document.getElementById(id);
+
   list.forEach(v=>{
-    const op = document.createElement("option");
-    op.value=v;
-    op.textContent=v;
-    target.appendChild(op);
+    const label = document.createElement("label");
+    label.innerHTML =
+      `<input type="checkbox" class="${name}" value="${v}" checked> ${v}`;
+    area.appendChild(label);
+  });
+
+  area.querySelectorAll("input").forEach(el=>{
+    el.addEventListener("change",renderCards);
   });
 }
 
@@ -81,9 +81,15 @@ function unique(arr){
   return [...new Set(arr)].filter(Boolean).sort((a,b)=>a.localeCompare(b,"ja"));
 }
 
+function selectedValues(className){
+  return [...document.querySelectorAll("."+className+":checked")]
+         .map(el=>el.value);
+}
+
 function renderCards(){
 
   let list = [...cards];
+
   const key = searchBox.value.toLowerCase();
 
   if(key){
@@ -94,19 +100,18 @@ function renderCards(){
     );
   }
 
-  if(filterRarity.value){
-    list = list.filter(c=>c.rarity===filterRarity.value);
-  }
+  const rarity = selectedValues("rarity");
+  const wave = selectedValues("wave");
+  const character = selectedValues("character");
 
-  if(filterWave.value){
-    list = list.filter(c=>c.wave===filterWave.value);
-  }
-
-  if(filterCharacter.value){
-    list = list.filter(c=>c.character===filterCharacter.value);
-  }
+  list = list.filter(c =>
+    rarity.includes(c.rarity) &&
+    wave.includes(c.wave) &&
+    character.includes(c.character)
+  );
 
   list = list.filter(card=>{
+
     const d = saveData[card.id] || {count:0,want:false,memo:""};
 
     if(dupOnly.checked && d.count < 2) return false;
@@ -129,7 +134,7 @@ function renderCards(){
     if(data.want) want++;
 
     const div = document.createElement("div");
-    div.className="card";
+    div.className = "card";
 
     if(data.count===0) div.classList.add("no-own");
 
@@ -175,7 +180,8 @@ function renderCards(){
       update();
     };
 
-    heart.onclick=()=>{
+    heart.onclick=(e)=>{
+      e.stopPropagation();
       data.want=!data.want;
       update();
     };
@@ -197,24 +203,30 @@ function renderCards(){
   });
 
   document.getElementById("totalCards").textContent =
-    list.length+"枚";
+    list.length + "件表示";
 
   document.getElementById("ownedCards").textContent =
-    "所持 "+own;
+    "所持 " + own;
 
   document.getElementById("wantedCards").textContent =
-    "求 "+want;
+    "求 " + want;
 }
 
 function save(){
   localStorage.setItem("aipriData",JSON.stringify(saveData));
 }
 
+function toggleAll(type,state){
+  document.querySelectorAll("." + type).forEach(el=>{
+    el.checked = state;
+  });
+  renderCards();
+}
+
+window.toggleAll = toggleAll;
+
 [
 searchBox,
-filterRarity,
-filterWave,
-filterCharacter,
 dupOnly,
 wantOnly,
 noneOnly
@@ -228,16 +240,16 @@ document.getElementById("saveAll").onclick=()=>{
 };
 
 document.getElementById("saveWant").onclick=()=>{
-  wantOnly.checked=true;
+  wantOnly.checked = true;
   renderCards();
   setTimeout(()=>capture("求カード"),300);
 };
 
 function capture(name){
   html2canvas(document.getElementById("captureArea")).then(canvas=>{
-    const a=document.createElement("a");
-    a.href=canvas.toDataURL();
-    a.download=name+".png";
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL();
+    a.download = name + ".png";
     a.click();
   });
 }
