@@ -108,21 +108,22 @@ function makeCheckGroup(id,list,name){
 
   list.forEach(v=>{
 
+    const labelText = v.replace(/^\d+_/, "");
+
     const label = document.createElement("label");
 
     label.innerHTML =
       `<input type="checkbox"
               class="${name}"
               value="${v}"
-              checked> ${v}`;
+              checked> ${labelText}`;
 
     area.appendChild(label);
   });
 
-  area.querySelectorAll("input")
-      .forEach(el=>{
-        el.addEventListener("change",renderCards);
-      });
+  area.querySelectorAll("input").forEach(el=>{
+    el.addEventListener("change",renderCards);
+  });
 }
 
 function unique(arr){
