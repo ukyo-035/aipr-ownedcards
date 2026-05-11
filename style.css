@@ -314,7 +314,7 @@ summary{
 /* ---------------- 保存画像専用 ---------------- */
 
 .capture-mode #cardList{
-  grid-template-columns:repeat(3,1fr) !important;
+  grid-template-columns:repeat(5,1fr) !important;
   gap:14px !important;
 }
 
