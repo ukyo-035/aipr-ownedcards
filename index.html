@@ -1,71 +1,80 @@
-<!-- index.html フィルター強化版 -->
+<!-- index.html 完成版 -->
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>アイプリカード管理</title>
 
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 
 <body>
 
 <header>
-<h1>ひみつのアイプリ / おねがいアイプリ</h1>
-<p>カード管理システム</p>
+  <h1>アイプリカード管理</h1>
+  <p>所持・求・ダブり管理</p>
 </header>
 
-<section class="toolbar">
+<!-- 検索 -->
+<div class="toolbar">
+  <input id="searchBox" type="text" placeholder="検索（ID・衣装・キャラ）">
 
-<div class="filter-block">
-<div class="filter-title">レア</div>
-<div id="rarityChecks" class="check-wrap"></div>
+  <label><input type="checkbox" id="dupOnly"> ダブり</label>
+  <label><input type="checkbox" id="wantOnly"> 求</label>
+  <label><input type="checkbox" id="noneOnly"> 未所持</label>
+
+  <button id="saveAll">一覧保存</button>
+  <button id="saveWant">求保存</button>
 </div>
 
-<details class="filter-block">
-<summary>弾フィルター</summary>
-<div class="mini-btns">
-<button type="button" onclick="toggleAll('wave',true)">全選択</button>
-<button type="button" onclick="toggleAll('wave',false)">全解除</button>
+<!-- フィルター -->
+<div class="toolbar2">
+
+  <details open class="filter-block">
+    <summary>レアリティ</summary>
+    <div class="mini-btns">
+      <button onclick="toggleAll('rarity',true)">全</button>
+      <button onclick="toggleAll('rarity',false)">無</button>
+    </div>
+    <div id="rarityChecks" class="check-wrap"></div>
+  </details>
+
+  <details class="filter-block">
+    <summary>弾</summary>
+    <div class="mini-btns">
+      <button onclick="toggleAll('wave',true)">全</button>
+      <button onclick="toggleAll('wave',false)">無</button>
+    </div>
+    <div id="waveChecks" class="check-wrap"></div>
+  </details>
+
+  <details class="filter-block">
+    <summary>キャラ</summary>
+    <div class="mini-btns">
+      <button onclick="toggleAll('character',true)">全</button>
+      <button onclick="toggleAll('character',false)">無</button>
+    </div>
+    <div id="characterChecks" class="check-wrap"></div>
+  </details>
+
 </div>
-<div id="waveChecks" class="check-wrap"></div>
-</details>
 
-<details class="filter-block">
-<summary>キャラフィルター</summary>
-<div class="mini-btns">
-<button type="button" onclick="toggleAll('character',true)">全選択</button>
-<button type="button" onclick="toggleAll('character',false)">全解除</button>
+<!-- 件数 -->
+<div class="status">
+  <div id="totalCards">0件</div>
+  <div id="ownedCards">所持0</div>
+  <div id="wantedCards">求0</div>
 </div>
-<div id="characterChecks" class="check-wrap"></div>
-</details>
 
-<label><input type="checkbox" id="dupOnly">ダブり</label>
-<label><input type="checkbox" id="wantOnly">求</label>
-<label><input type="checkbox" id="noneOnly">未所持</label>
-
-<input type="text" id="searchBox" placeholder="ID・衣装名検索">
-
-</section>
-
-<section class="toolbar2">
-<button id="saveAll">一覧画像保存</button>
-<button id="saveWant">求カード画像</button>
-</section>
-
-<section class="status">
-<span id="totalCards">0件表示</span>
-<span id="ownedCards">所持0</span>
-<span id="wantedCards">求0</span>
-</section>
-
-<main id="captureArea">
-<section id="cardList"></section>
-</main>
+<!-- 保存範囲 -->
+<div id="captureArea">
+  <div id="cardList"></div>
+</div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
