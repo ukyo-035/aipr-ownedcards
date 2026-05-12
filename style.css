@@ -342,7 +342,7 @@ summary{
 
   #cardList{
     grid-template-columns:
-      repeat(5,1fr);
+      repeat(3,1fr);
     gap:6px;
   }
 
