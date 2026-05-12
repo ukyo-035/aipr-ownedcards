@@ -679,6 +679,21 @@ function capture(name){
     "capture-mode"
   );
 
+  // 未入力メモplaceholder非表示
+  document
+   .querySelectorAll(".memo")
+   .forEach(el=>{
+
+     if(el.value.trim()===""){
+
+       el.dataset.old =
+         el.placeholder;
+
+       el.placeholder = "";
+     }
+
+   });
+
   html2canvas(area,{
     scale:2,
     useCORS:true,
@@ -698,9 +713,21 @@ function capture(name){
 
     a.click();
 
+    // 戻す
     area.classList.remove(
       "capture-mode"
     );
+
+    document
+     .querySelectorAll(".memo")
+     .forEach(el=>{
+
+       if(el.dataset.old){
+         el.placeholder =
+           el.dataset.old;
+       }
+
+     });
 
   });
 }
