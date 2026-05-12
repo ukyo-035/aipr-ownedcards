@@ -676,12 +676,19 @@ function capture(name){
   const list =
     document.getElementById("cardList");
 
+  const oldWidth =
+    area.style.width;
+
+  // 保存時だけPC幅にする
+  area.style.width = "1800px";
+
   list.classList.add("capture-mode");
 
   html2canvas(area,{
     scale:2,
     useCORS:true,
-    backgroundColor:"#fff"
+    backgroundColor:"#fff",
+    windowWidth:1800
   }).then(canvas=>{
 
     const a =
@@ -694,6 +701,10 @@ function capture(name){
       name + ".png";
 
     a.click();
+
+    // 元に戻す
+    area.style.width =
+      oldWidth;
 
     list.classList.remove(
       "capture-mode"
