@@ -1,7 +1,5 @@
 /* style.css 完全版 */
-/* アイプリカード管理 */
-
-/* -------------------- 基本 -------------------- */
+/* PC=8列 / スマホ=4列 / 画像保存=10列 */
 
 *{
   box-sizing:border-box;
@@ -18,14 +16,14 @@ body{
   color:#333;
 }
 
-/* -------------------- header -------------------- */
+/* ---------------- header ---------------- */
 
 header{
   background:
     linear-gradient(
       90deg,
-      #ffb6d9,
-      #ffe4f2
+      #ffb8da,
+      #ffe7f4
     );
   text-align:center;
   padding:14px;
@@ -44,7 +42,7 @@ header p{
   font-size:12px;
 }
 
-/* -------------------- toolbar -------------------- */
+/* ---------------- toolbar ---------------- */
 
 .toolbar,
 .toolbar2{
@@ -69,7 +67,7 @@ header p{
   z-index:19;
 }
 
-/* -------------------- 入力 -------------------- */
+/* ---------------- form ---------------- */
 
 input,
 button,
@@ -105,15 +103,20 @@ label{
   font-size:13px;
 }
 
-/* -------------------- filter -------------------- */
+/* ---------------- filter ---------------- */
 
-.filter-block{
+details{
   width:100%;
+  background:#fff;
+  border:
+    1px solid #f5d6e6;
+  border-radius:10px;
+  padding:6px;
 }
 
 summary{
-  font-weight:bold;
   cursor:pointer;
+  font-weight:bold;
   margin-bottom:6px;
 }
 
@@ -124,7 +127,7 @@ summary{
 }
 
 .check-wrap label{
-  background:#ffeaf5;
+  background:#ffeaf4;
   padding:5px 8px;
   border-radius:8px;
   font-size:12px;
@@ -141,7 +144,7 @@ summary{
   font-size:11px;
 }
 
-/* -------------------- status -------------------- */
+/* ---------------- status ---------------- */
 
 .status{
   display:flex;
@@ -155,8 +158,9 @@ summary{
   font-weight:bold;
 }
 
-/* -------------------- list -------------------- */
+/* ---------------- card list ---------------- */
 
+/* スマホ 4列 */
 #cardList{
   display:grid;
   grid-template-columns:
@@ -165,6 +169,7 @@ summary{
   padding:8px;
 }
 
+/* PC 8列 */
 @media(min-width:900px){
 
   #cardList{
@@ -174,14 +179,14 @@ summary{
 
 }
 
-/* -------------------- 見出し -------------------- */
+/* ---------------- group title ---------------- */
 
 .wave-title{
   grid-column:1 / -1;
   background:
     linear-gradient(
       90deg,
-      #ffd6ea,
+      #ffd7ea,
       #fff1f8
     );
   color:#c2185b;
@@ -192,7 +197,7 @@ summary{
   margin-top:8px;
 }
 
-/* -------------------- card -------------------- */
+/* ---------------- card ---------------- */
 
 .card{
   position:relative;
@@ -209,20 +214,18 @@ summary{
 }
 
 /* 未所持 */
-
 .no-own img{
   filter:grayscale(100%);
   opacity:.55;
 }
 
 /* 求 */
-
 .wanting{
   border:
     2px solid #ff66b3;
 }
 
-/* -------------------- image -------------------- */
+/* ---------------- image ---------------- */
 
 .card img{
   width:100%;
@@ -232,7 +235,7 @@ summary{
   background:#eee;
 }
 
-/* -------------------- 求ボタン -------------------- */
+/* ---------------- want button ---------------- */
 
 .want{
   position:absolute;
@@ -242,34 +245,33 @@ summary{
   height:28px;
   border-radius:50%;
   padding:0;
-  font-size:16px;
   line-height:28px;
+  font-size:16px;
   background:#fff;
   color:#ff66b3;
   z-index:5;
 }
 
-/* -------------------- text -------------------- */
+/* ---------------- text ---------------- */
 
 .card-id{
-  font-size:11px;
   margin-top:4px;
+  font-size:11px;
 }
 
 .dress{
+  margin-top:2px;
+  min-height:34px;
+  line-height:1.2;
   font-size:12px;
   font-weight:bold;
-  line-height:1.2;
-  min-height:34px;
-  margin-top:2px;
 }
 
-/* -------------------- count -------------------- */
+/* ---------------- count ---------------- */
 
 .count-box{
   display:flex;
   justify-content:center;
-  align-items:center;
   gap:4px;
   margin-top:6px;
 }
@@ -286,7 +288,7 @@ summary{
   padding:0;
 }
 
-/* -------------------- memo -------------------- */
+/* ---------------- memo ---------------- */
 
 .memo{
   width:100%;
@@ -296,30 +298,55 @@ summary{
   padding:4px;
 }
 
-/* -------------------- 保存時 -------------------- */
+/* ---------------- 保存時 ---------------- */
+/* 横10列 */
+
+.capture-mode{
+  width:1800px !important;
+  max-width:none !important;
+}
 
 .capture-mode #cardList{
   grid-template-columns:
     repeat(10,1fr)
     !important;
-  gap:12px;
+  gap:12px !important;
 }
 
 .capture-mode .card{
-  min-height:430px;
+  min-height:370px;
+  padding:8px;
+  font-size:12px;
 }
 
-.capture-mode .memo{
-  height:36px;
-  font-size:13px;
+.capture-mode .dress{
+  min-height:36px;
+  font-size:12px;
+}
+
+.capture-mode .card-id{
+  font-size:11px;
 }
 
 .capture-mode .count-box input{
-  height:34px;
-  font-size:15px;
+  width:42px;
+  height:28px;
+  font-size:13px;
 }
 
-/* -------------------- mobile -------------------- */
+.capture-mode .count-box button{
+  width:28px;
+  height:28px;
+  font-size:13px;
+  padding:0;
+}
+
+.capture-mode .memo{
+  height:28px;
+  font-size:11px;
+}
+
+/* ---------------- mobile ---------------- */
 
 @media(max-width:600px){
 
@@ -329,8 +356,8 @@ summary{
 
   .toolbar,
   .toolbar2{
-    padding:8px;
     gap:6px;
+    padding:8px;
   }
 
   input,
@@ -338,12 +365,6 @@ summary{
   select{
     font-size:12px;
     padding:7px;
-  }
-
-  #cardList{
-    grid-template-columns:
-      repeat(3,1fr);
-    gap:6px;
   }
 
   .card{
@@ -368,58 +389,4 @@ summary{
     font-size:14px;
   }
 
-}
-
-/* -------------------- details開閉余白 -------------------- */
-
-details{
-  background:#fff;
-  border-radius:10px;
-  padding:6px;
-  border:
-    1px solid #f3d6e6;
-}
-
-/* ---------------- 保存時PCレイアウト強制 ---------------- */
-
-.capture-mode{
-  width:1920px !important;
-  max-width:none !important;
-}
-
-.capture-mode #cardList{
-  grid-template-columns:repeat(10,1fr) !important;
-  gap:14px !important;
-}
-
-.capture-mode .card{
-  min-height:460px;
-  padding:10px;
-  font-size:14px;
-}
-
-.capture-mode .dress{
-  font-size:16px;
-  min-height:44px;
-}
-
-.capture-mode .card-id{
-  font-size:14px;
-}
-
-.capture-mode .count-box input{
-  width:56px;
-  height:36px;
-  font-size:18px;
-}
-
-.capture-mode .count-box button{
-  width:34px;
-  height:34px;
-  font-size:18px;
-}
-
-.capture-mode .memo{
-  height:38px;
-  font-size:14px;
 }
