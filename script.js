@@ -670,10 +670,13 @@ document
 
 function capture(name){
 
-  const area = document.getElementById("captureArea");
-  const list = document.getElementById("cardList");
+  const area =
+    document.getElementById("captureArea");
 
-  area.classList.add("capture-mode");
+  const list =
+    document.getElementById("cardList");
+
+  list.classList.add("capture-mode");
 
   html2canvas(area,{
     scale:2,
@@ -681,12 +684,20 @@ function capture(name){
     backgroundColor:"#fff"
   }).then(canvas=>{
 
-    const a=document.createElement("a");
-    a.href=canvas.toDataURL("image/png");
-    a.download=name+".png";
+    const a =
+      document.createElement("a");
+
+    a.href =
+      canvas.toDataURL("image/png");
+
+    a.download =
+      name + ".png";
+
     a.click();
 
-    area.classList.remove("capture-mode");
+    list.classList.remove(
+      "capture-mode"
+    );
 
   });
 
