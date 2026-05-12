@@ -668,42 +668,21 @@ document
   },300);
 };
 
-// capture() 差し替え版
-// 少数グループ(5枚以下)を横並び化して保存
-
 function capture(name){
 
-  const area =
-    document.getElementById(
-      "captureArea"
-    );
+  const area = document.getElementById("captureArea");
+  const list = document.getElementById("cardList");
 
-  const list =
-    document.getElementById(
-      "cardList"
-    );
+  const oldHTML = list.innerHTML;
 
-  // 元HTML保存
-  const oldHTML =
-    list.innerHTML;
-
-  // ------------------------
-  // グループ再構築
-  // ------------------------
-
-  const children =
-    [...list.children];
+  const items = [...list.children];
 
   let groups = [];
   let current = null;
 
-  children.forEach(el=>{
+  items.forEach(el=>{
 
-    if(
-      el.classList.contains(
-        "wave-title"
-      )
-    ){
+    if(el.classList.contains("wave-title")){
 
       current = {
         title: el.outerHTML,
@@ -711,35 +690,28 @@ function capture(name){
       };
 
       groups.push(current);
+      return;
+    }
 
-    }else if(current){
-
-      current.cards.push(
-        el.outerHTML
-      );
+    if(el.classList.contains("card")){
+      if(current) current.cards.push(el.outerHTML);
     }
 
   });
 
   let html = "";
 
-  let smallGroups =
-    groups.filter(
-      g=>g.cards.length <= 5
-    );
+  const small =
+    groups.filter(g=>g.cards.length<=5);
 
-  let bigGroups =
-    groups.filter(
-      g=>g.cards.length > 5
-    );
+  const big =
+    groups.filter(g=>g.cards.length>5);
 
-  // 少数グループ横並び
-  if(smallGroups.length){
+  if(small.length){
 
-    html +=
-    `<div class="capture-group-grid">`;
+    html += `<div class="capture-group-grid">`;
 
-    smallGroups.forEach(g=>{
+    small.forEach(g=>{
 
       html += `
       <div class="capture-group-box">
@@ -755,37 +727,14 @@ function capture(name){
     html += `</div>`;
   }
 
-  // 通常グループ
-  bigGroups.forEach(g=>{
-
+  big.forEach(g=>{
     html += g.title;
     html += g.cards.join("");
-
   });
 
   list.innerHTML = html;
 
-  // ------------------------
-  // 保存モード
-  // ------------------------
-
-  area.classList.add(
-    "capture-mode"
-  );
-
-  // placeholder消す
-  document
-   .querySelectorAll(".memo")
-   .forEach(el=>{
-
-     if(el.value.trim()===""){
-       el.dataset.old =
-         el.placeholder;
-
-       el.placeholder = "";
-     }
-
-   });
+  area.classList.add("capture-mode");
 
   html2canvas(area,{
     scale:2,
@@ -793,26 +742,13 @@ function capture(name){
     backgroundColor:"#fff"
   }).then(canvas=>{
 
-    const a =
-      document.createElement("a");
-
-    a.href =
-      canvas.toDataURL(
-        "image/png"
-      );
-
-    a.download =
-      name + ".png";
-
+    const a=document.createElement("a");
+    a.href=canvas.toDataURL("image/png");
+    a.download=name+".png";
     a.click();
 
-    // 戻す
-    list.innerHTML =
-      oldHTML;
-
-    area.classList.remove(
-      "capture-mode"
-    );
+    list.innerHTML=oldHTML;
+    area.classList.remove("capture-mode");
 
   });
 
