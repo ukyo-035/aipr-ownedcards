@@ -379,3 +379,47 @@ details{
   border:
     1px solid #f3d6e6;
 }
+
+/* ---------------- 保存時PCレイアウト強制 ---------------- */
+
+.capture-mode{
+  width:1200px !important;
+  max-width:none !important;
+}
+
+.capture-mode #cardList{
+  grid-template-columns:repeat(4,1fr) !important;
+  gap:14px !important;
+}
+
+.capture-mode .card{
+  min-height:460px;
+  padding:10px;
+  font-size:14px;
+}
+
+.capture-mode .dress{
+  font-size:16px;
+  min-height:44px;
+}
+
+.capture-mode .card-id{
+  font-size:14px;
+}
+
+.capture-mode .count-box input{
+  width:56px;
+  height:36px;
+  font-size:18px;
+}
+
+.capture-mode .count-box button{
+  width:34px;
+  height:34px;
+  font-size:18px;
+}
+
+.capture-mode .memo{
+  height:38px;
+  font-size:14px;
+}
