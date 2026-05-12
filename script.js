@@ -668,6 +668,9 @@ document
   },300);
 };
 
+// capture() 差し替え版
+// 少数グループ(5枚以下)を横並び化して保存
+
 function capture(name){
 
   const area =
@@ -675,13 +678,96 @@ function capture(name){
       "captureArea"
     );
 
-  // 元サイズ保存
-  const oldWidth =
-    area.style.width;
+  const list =
+    document.getElementById(
+      "cardList"
+    );
 
-  // 保存時だけPC幅
-  area.style.width =
-    "1200px";
+  // 元HTML保存
+  const oldHTML =
+    list.innerHTML;
+
+  // ------------------------
+  // グループ再構築
+  // ------------------------
+
+  const children =
+    [...list.children];
+
+  let groups = [];
+  let current = null;
+
+  children.forEach(el=>{
+
+    if(
+      el.classList.contains(
+        "wave-title"
+      )
+    ){
+
+      current = {
+        title: el.outerHTML,
+        cards:[]
+      };
+
+      groups.push(current);
+
+    }else if(current){
+
+      current.cards.push(
+        el.outerHTML
+      );
+    }
+
+  });
+
+  let html = "";
+
+  let smallGroups =
+    groups.filter(
+      g=>g.cards.length <= 5
+    );
+
+  let bigGroups =
+    groups.filter(
+      g=>g.cards.length > 5
+    );
+
+  // 少数グループ横並び
+  if(smallGroups.length){
+
+    html +=
+    `<div class="capture-group-grid">`;
+
+    smallGroups.forEach(g=>{
+
+      html += `
+      <div class="capture-group-box">
+        ${g.title}
+        <div class="mini-list">
+          ${g.cards.join("")}
+        </div>
+      </div>
+      `;
+
+    });
+
+    html += `</div>`;
+  }
+
+  // 通常グループ
+  bigGroups.forEach(g=>{
+
+    html += g.title;
+    html += g.cards.join("");
+
+  });
+
+  list.innerHTML = html;
+
+  // ------------------------
+  // 保存モード
+  // ------------------------
 
   area.classList.add(
     "capture-mode"
@@ -711,31 +797,23 @@ function capture(name){
       document.createElement("a");
 
     a.href =
-      canvas.toDataURL("image/png");
+      canvas.toDataURL(
+        "image/png"
+      );
 
     a.download =
       name + ".png";
 
     a.click();
 
-    // 元に戻す
-    area.style.width =
-      oldWidth;
+    // 戻す
+    list.innerHTML =
+      oldHTML;
 
     area.classList.remove(
       "capture-mode"
     );
 
-    document
-     .querySelectorAll(".memo")
-     .forEach(el=>{
-
-       if(el.dataset.old){
-         el.placeholder =
-           el.dataset.old;
-       }
-
-     });
-
   });
+
 }
