@@ -390,3 +390,21 @@ summary{
   }
 
 }
+
+/* style.css 追加 */
+/* 保存時 少数グループ横並び */
+
+.capture-group-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.capture-group-box{
+  break-inside:avoid;
+  page-break-inside:avoid;
+  background:#fff;
+  border-radius:12px;
+}
