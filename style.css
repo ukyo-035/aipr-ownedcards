@@ -1,5 +1,10 @@
-/* style.css 完全版 */
-/* PC=8列 / スマホ=4列 / 画像保存=10列 */
+/* ===================================================
+   style.css 完全版
+   PC=8列 / スマホ=4列 / 画像保存=10列
+   少数グループ保存時は横並び
+=================================================== */
+
+/* ---------- 基本 ---------- */
 
 *{
   box-sizing:border-box;
@@ -16,7 +21,7 @@ body{
   color:#333;
 }
 
-/* ---------------- header ---------------- */
+/* ---------- header ---------- */
 
 header{
   background:
@@ -28,8 +33,7 @@ header{
   text-align:center;
   padding:14px;
   box-shadow:
-    0 2px 6px
-    rgba(0,0,0,.08);
+    0 2px 6px rgba(0,0,0,.08);
 }
 
 header h1{
@@ -42,7 +46,7 @@ header p{
   font-size:12px;
 }
 
-/* ---------------- toolbar ---------------- */
+/* ---------- toolbar ---------- */
 
 .toolbar,
 .toolbar2{
@@ -51,8 +55,7 @@ header p{
   gap:8px;
   padding:10px;
   background:#fff;
-  border-bottom:
-    1px solid #eee;
+  border-bottom:1px solid #eee;
 }
 
 .toolbar{
@@ -67,14 +70,13 @@ header p{
   z-index:19;
 }
 
-/* ---------------- form ---------------- */
+/* ---------- form ---------- */
 
 input,
 button,
 select{
   border-radius:10px;
-  border:
-    1px solid #ddd;
+  border:1px solid #ddd;
   padding:8px;
   font-size:13px;
   background:#fff;
@@ -103,13 +105,12 @@ label{
   font-size:13px;
 }
 
-/* ---------------- filter ---------------- */
+/* ---------- details ---------- */
 
 details{
   width:100%;
   background:#fff;
-  border:
-    1px solid #f5d6e6;
+  border:1px solid #f4d6e5;
   border-radius:10px;
   padding:6px;
 }
@@ -144,7 +145,7 @@ summary{
   font-size:11px;
 }
 
-/* ---------------- status ---------------- */
+/* ---------- status ---------- */
 
 .status{
   display:flex;
@@ -152,41 +153,39 @@ summary{
   gap:8px;
   padding:8px;
   background:#fff;
-  border-bottom:
-    1px solid #eee;
+  border-bottom:1px solid #eee;
   font-size:13px;
   font-weight:bold;
 }
 
-/* ---------------- card list ---------------- */
+/* ---------- card list ---------- */
+/* スマホ4列 */
 
-/* スマホ 4列 */
 #cardList{
   display:grid;
-  grid-template-columns:
-    repeat(4,1fr);
+  grid-template-columns:repeat(4,1fr);
   gap:8px;
   padding:8px;
 }
 
-/* PC 8列 */
+/* PC8列 */
+
 @media(min-width:900px){
 
   #cardList{
-    grid-template-columns:
-      repeat(8,1fr);
+    grid-template-columns:repeat(8,1fr);
   }
 
 }
 
-/* ---------------- group title ---------------- */
+/* ---------- 見出し ---------- */
 
 .wave-title{
   grid-column:1 / -1;
   background:
     linear-gradient(
       90deg,
-      #ffd7ea,
+      #ffd8ec,
       #fff1f8
     );
   color:#c2185b;
@@ -197,7 +196,7 @@ summary{
   margin-top:8px;
 }
 
-/* ---------------- card ---------------- */
+/* ---------- card ---------- */
 
 .card{
   position:relative;
@@ -206,26 +205,26 @@ summary{
   padding:8px;
   min-height:350px;
   box-shadow:
-    0 2px 6px
-    rgba(0,0,0,.08);
+    0 2px 6px rgba(0,0,0,.08);
   text-align:center;
   font-size:11px;
   overflow:hidden;
 }
 
 /* 未所持 */
+
 .no-own img{
   filter:grayscale(100%);
   opacity:.55;
 }
 
-/* 求 */
+/* 求カード */
+
 .wanting{
-  border:
-    2px solid #ff66b3;
+  border:2px solid #ff66b3;
 }
 
-/* ---------------- image ---------------- */
+/* ---------- image ---------- */
 
 .card img{
   width:100%;
@@ -235,7 +234,7 @@ summary{
   background:#eee;
 }
 
-/* ---------------- want button ---------------- */
+/* ---------- 求ボタン ---------- */
 
 .want{
   position:absolute;
@@ -252,7 +251,7 @@ summary{
   z-index:5;
 }
 
-/* ---------------- text ---------------- */
+/* ---------- text ---------- */
 
 .card-id{
   margin-top:4px;
@@ -267,7 +266,7 @@ summary{
   font-weight:bold;
 }
 
-/* ---------------- count ---------------- */
+/* ---------- count ---------- */
 
 .count-box{
   display:flex;
@@ -288,7 +287,7 @@ summary{
   padding:0;
 }
 
-/* ---------------- memo ---------------- */
+/* ---------- memo ---------- */
 
 .memo{
   width:100%;
@@ -298,20 +297,25 @@ summary{
   padding:4px;
 }
 
-/* ---------------- 保存時 ---------------- */
-/* 横10列 */
+/* ===================================================
+   保存時（画像生成）
+=================================================== */
+
+/* 全体 */
 
 .capture-mode{
   width:1800px !important;
   max-width:none !important;
 }
 
+/* 通常グループ 10列 */
+
 .capture-mode #cardList{
-  grid-template-columns:
-    repeat(10,1fr)
-    !important;
+  grid-template-columns:repeat(10,1fr) !important;
   gap:12px !important;
 }
+
+/* カード調整 */
 
 .capture-mode .card{
   min-height:370px;
@@ -337,8 +341,8 @@ summary{
 .capture-mode .count-box button{
   width:28px;
   height:28px;
-  font-size:13px;
   padding:0;
+  font-size:13px;
 }
 
 .capture-mode .memo{
@@ -346,7 +350,40 @@ summary{
   font-size:11px;
 }
 
-/* ---------------- mobile ---------------- */
+/* ---------- 少数グループ横並び ---------- */
+
+.capture-group-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.capture-group-box{
+  background:#fff;
+  border-radius:12px;
+  padding:4px;
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+
+/* グループ内カード */
+
+.capture-mode .mini-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.capture-mode .mini-list .card{
+  width:170px;
+  min-height:370px;
+  flex:none;
+}
+
+/* ---------- mobile ---------- */
 
 @media(max-width:600px){
 
@@ -389,22 +426,4 @@ summary{
     font-size:14px;
   }
 
-}
-
-/* style.css 追加 */
-/* 保存時 少数グループ横並び */
-
-.capture-group-grid{
-  display:grid;
-  grid-template-columns:
-    repeat(auto-fit,minmax(320px,1fr));
-  gap:16px;
-  margin-bottom:18px;
-}
-
-.capture-group-box{
-  break-inside:avoid;
-  page-break-inside:avoid;
-  background:#fff;
-  border-radius:12px;
 }
