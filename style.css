@@ -383,12 +383,12 @@ details{
 /* ---------------- 保存時PCレイアウト強制 ---------------- */
 
 .capture-mode{
-  width:1200px !important;
+  width:1920px !important;
   max-width:none !important;
 }
 
 .capture-mode #cardList{
-  grid-template-columns:repeat(4,1fr) !important;
+  grid-template-columns:repeat(10,1fr) !important;
   gap:14px !important;
 }
 
