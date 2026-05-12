@@ -673,67 +673,6 @@ function capture(name){
   const area = document.getElementById("captureArea");
   const list = document.getElementById("cardList");
 
-  const oldHTML = list.innerHTML;
-
-  const items = [...list.children];
-
-  let groups = [];
-  let current = null;
-
-  items.forEach(el=>{
-
-    if(el.classList.contains("wave-title")){
-
-      current = {
-        title: el.outerHTML,
-        cards:[]
-      };
-
-      groups.push(current);
-      return;
-    }
-
-    if(el.classList.contains("card")){
-      if(current) current.cards.push(el.outerHTML);
-    }
-
-  });
-
-  let html = "";
-
-  const small =
-    groups.filter(g=>g.cards.length<=5);
-
-  const big =
-    groups.filter(g=>g.cards.length>5);
-
-  if(small.length){
-
-    html += `<div class="capture-group-grid">`;
-
-    small.forEach(g=>{
-
-      html += `
-      <div class="capture-group-box">
-        ${g.title}
-        <div class="mini-list">
-          ${g.cards.join("")}
-        </div>
-      </div>
-      `;
-
-    });
-
-    html += `</div>`;
-  }
-
-  big.forEach(g=>{
-    html += g.title;
-    html += g.cards.join("");
-  });
-
-  list.innerHTML = html;
-
   area.classList.add("capture-mode");
 
   html2canvas(area,{
@@ -747,7 +686,6 @@ function capture(name){
     a.download=name+".png";
     a.click();
 
-    list.innerHTML=oldHTML;
     area.classList.remove("capture-mode");
 
   });
