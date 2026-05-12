@@ -675,17 +675,24 @@ function capture(name){
       "captureArea"
     );
 
+  // 元サイズ保存
+  const oldWidth =
+    area.style.width;
+
+  // 保存時だけPC幅
+  area.style.width =
+    "1200px";
+
   area.classList.add(
     "capture-mode"
   );
 
-  // 未入力メモplaceholder非表示
+  // placeholder消す
   document
    .querySelectorAll(".memo")
    .forEach(el=>{
 
      if(el.value.trim()===""){
-
        el.dataset.old =
          el.placeholder;
 
@@ -704,16 +711,17 @@ function capture(name){
       document.createElement("a");
 
     a.href =
-      canvas.toDataURL(
-        "image/png"
-      );
+      canvas.toDataURL("image/png");
 
     a.download =
       name + ".png";
 
     a.click();
 
-    // 戻す
+    // 元に戻す
+    area.style.width =
+      oldWidth;
+
     area.classList.remove(
       "capture-mode"
     );
