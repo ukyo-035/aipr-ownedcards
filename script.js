@@ -152,7 +152,7 @@ function renderCards() {
   document.getElementById("wantedCards").textContent = "求 " + want;
 }
 
-// フィルター・ソート済みのカード配列を返す共通処理
+// フィルター・ソート済みのカード配列を返す処理
 function getFilteredAndSortedCards() {
   let list = [...cards];
   const key = searchBox.value.toLowerCase();
@@ -195,7 +195,7 @@ function getFilteredAndSortedCards() {
   return list;
 }
 
-// 単一のカードDOM要素を生成する共通処理
+// 単一のカードDOM要素を生成する処理
 function createCardElement(card, data) {
   const div = document.createElement("div");
   div.className = "card";
@@ -209,8 +209,8 @@ function createCardElement(card, data) {
     <img src="img/${card.image}" onerror="this.src=''">
     <div class="card-id">${card.id}</div>
     <div class="dress">${card.dress}</div>
-    <div>${cleanName(card.character)}</div>
-    <div>${card.rarity}</div>
+    <div class="char-name">${cleanName(card.character)}</div>
+    <div class="rarity-badge">${card.rarity}</div>
     <div class="count-box">
       <button class="minus">-</button>
       <input type="number" min="0" max="99" value="${data.count}">
@@ -270,24 +270,24 @@ document.getElementById("saveWant").onclick = () => {
   setTimeout(() => { capture("求カード"); }, 300);
 };
 
-// 画像保存用キャプチャ関数（大幅改修）
+// 画像保存用キャプチャ関数
 function capture(name) {
   const captureArea = document.getElementById("captureArea");
   const mode = groupMode.value;
 
-  // 1. 元の状態（HTML構造）をバックアップ
+  // 1. 元の状態をバックアップ
   const originalHTML = captureArea.innerHTML;
 
-  // 2. アクティブなカードの一覧とデータを再取得
+  // 2. アクティブなカードの一覧を再取得
   const list = getFilteredAndSortedCards();
 
-  // 3. 画像保存専用のHTML構造を再構築する
+  // 3. 画像保存専用のHTML構造を生成
   captureArea.innerHTML = "";
   const wrapper = document.createElement("div");
   wrapper.className = "capture-mode";
 
   if (mode === "none") {
-    // 見出しなしの場合は、単一の10列グリッドを作成
+    // 見出しなし：通常の10列グリッド
     const grid = document.createElement("div");
     grid.className = "capture-normal-grid";
     list.forEach(card => {
@@ -296,7 +296,7 @@ function capture(name) {
     });
     wrapper.appendChild(grid);
   } else {
-    // 弾ごと・キャラごとの場合、まずグループ分けを行う
+    // グループ分けを実行
     const groups = {};
     list.forEach(card => {
       let gName = (mode === "wave") ? card.wave : cleanName(card.character);
@@ -304,25 +304,22 @@ function capture(name) {
       groups[gName].push(card);
     });
 
-    // グループごとのカード枚数を調べて、「通常(多い)」か「少数」かを判定・分類する
-    const groupKeys = Object.keys(groups);
-    
-    // すべてのグループが4枚以下、またはグループ総数が少なく1画面に収めたい場合は「少数グループ横並び」コンテナに配置
-    // それ以外（通常）は縦積みの10列グリッドとして配置
-    const isAllMinor = groupKeys.every(k => groups[k].length <= 4);
+    // メインの横並びコンテナ
+    const groupGrid = document.createElement("div");
+    groupGrid.className = "capture-group-grid";
 
-    if (isAllMinor && mode === "character") {
-      // キャラごとで少数グループが密集する場合は横並びグリッドレイアウトを適用
-      const groupGrid = document.createElement("div");
-      groupGrid.className = "capture-group-grid";
+    Object.keys(groups).forEach(gName => {
+      const count = groups[gName].length;
+      if (count === 0) return;
 
-      groupKeys.forEach(gName => {
+      if (count <= 10) {
+        // ★修正ポイント：10枚を超えない場合は「横並びボックス」にする
         const groupBox = document.createElement("div");
         groupBox.className = "capture-group-box";
         
         const title = document.createElement("div");
         title.className = "wave-title";
-        title.textContent = "🌟 " + gName;
+        title.textContent = (mode === "wave" ? "💖 " : "🌟 ") + gName;
         groupBox.appendChild(title);
 
         const miniList = document.createElement("div");
@@ -333,11 +330,13 @@ function capture(name) {
         });
         groupBox.appendChild(miniList);
         groupGrid.appendChild(groupBox);
-      });
-      wrapper.appendChild(groupGrid);
-    } else {
-      // 通常の縦積み（枚数が多いグループがある、または弾ごとの場合）
-      groupKeys.forEach(gName => {
+      } else {
+        // 10枚を超える場合は、グリッドを一度リセットして縦積みフルサイズで配置
+        if (groupGrid.children.length > 0) {
+          wrapper.appendChild(groupGrid.cloneNode(true));
+          groupGrid.innerHTML = ""; 
+        }
+        
         const title = document.createElement("div");
         title.className = "wave-title";
         title.textContent = (mode === "wave" ? "💖 " : "🌟 ") + gName;
@@ -350,20 +349,24 @@ function capture(name) {
           grid.appendChild(createCardElement(card, data));
         });
         wrapper.appendChild(grid);
-      });
+      }
+    });
+
+    if (groupGrid.children.length > 0) {
+      wrapper.appendChild(groupGrid);
     }
   }
 
   captureArea.appendChild(wrapper);
 
-  // 4. 固定幅を設定してhtml2canvasを実行
+  // 4. 固定幅を設定して撮影
   const oldWidth = captureArea.style.width;
   captureArea.style.width = "1800px";
 
   html2canvas(captureArea, {
     scale: 2,
     useCORS: true,
-    backgroundColor: "#fff8fc", // 背景色をアプリ本体と統一
+    backgroundColor: "#fff8fc",
     windowWidth: 1800
   }).then(canvas => {
     const a = document.createElement("a");
@@ -371,10 +374,9 @@ function capture(name) {
     a.download = name + ".png";
     a.click();
 
-    // 5. 終了後に元の画面（HTML構造と通常幅）に完全復元する
+    // 5. 元の状態に完全復元
     captureArea.style.width = oldWidth;
     captureArea.innerHTML = originalHTML;
-    // 復元したDOMに対して再度イベントや表示件数を同期させる
     renderCards();
   });
 }
