@@ -266,124 +266,99 @@ summary{
 =================================================== */
 
 /* 全体 */
-.capture-mode{
-  width:1800px !important;
-  max-width:none !important;
+.capture-mode {
+  width: 1800px !important;
+  max-width: none !important;
 }
 
 /* 通常グループ 10列 */
-.capture-mode #cardList{
-  grid-template-columns:repeat(10,1fr) !important;
-  gap:12px !important;
+.capture-mode #cardList {
+  grid-template-columns: repeat(10, 1fr) !important;
+  gap: 12px !important;
 }
 
-/* カード調整 */
-.capture-mode .card{
-  min-height:370px;
-  padding:8px;
-  font-size:12px;
+/* ---------- ★カード全体のサイズ自動調整 ---------- */
+.capture-mode .card {
+  min-height: auto !important; /* 固定高さを解除して中身の分だけ縮める */
+  padding: 8px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px; /* 要素間の隙間を一定に保つ */
 }
 
-.capture-mode .dress{
-  min-height:36px;
-  font-size:12px;
+.capture-mode .dress {
+  min-height: auto !important; /* 衣装名の余白も詰める */
+  margin-bottom: 4px;
+  font-size: 12px;
 }
 
-.capture-mode .card-id{
-  font-size:11px;
+.capture-mode .card-id {
+  font-size: 11px;
 }
 
-.capture-mode .count-box input{
-  width:42px;
-  height:28px;
-  font-size:13px;
-  border: none; /* 保存時は入力枠線を消してスッキリさせる */
-}
-
-/* ★要望反映：画像作成時は、+、-ボタンを非表示 */
-.capture-mode .count-box button{
+/* ---------- ★追加要望①：求めカード画像生成時の所持数非表示 ---------- */
+/* 「求保存」ボタン（.wanting のみの一覧）のとき、所持数（count-box）を非表示にする */
+/* 通常の一覧保存時にも「求」単体のカードの所持数を消したい場合は .wanting .count-box で適用されます */
+.capture-mode .wanting .count-box {
   display: none !important;
 }
 
-/* ★要望反映：未入力（値が空）のメモ欄を非表示にする */
-.capture-mode .memo[data-has-memo="false"] {
-  visibility: hidden !important;
+/* 通常の「一覧保存」のときの所持数入力欄の見た目調整（ボタンは非表示） */
+.capture-mode .count-box input {
+  width: 42px;
+  height: 24px;
+  font-size: 13px;
+  border: none; 
+  background: transparent;
 }
 
-/* 入力済みのメモは枠線を消してテキストだけ見せる */
+.capture-mode .count-box button {
+  display: none !important;
+}
+
+/* ---------- ★追加要望②：未入力メモの非表示と枠詰め ---------- */
+/* メモが未入力（値が空）の時は完全に除外して枠を詰める */
+.capture-mode .memo[data-has-memo="false"] {
+  display: none !important;
+}
+
+/* 入力済みのメモがある場合は、枠線を消してテキストだけ綺麗に見せる */
 .capture-mode .memo[data-has-memo="true"] {
   border: none;
   background: transparent;
   text-align: center;
-}
-
-.capture-mode .memo{
-  height:28px;
-  font-size:11px;
+  margin-top: 4px;
+  height: auto;
+  font-size: 11px;
 }
 
 /* ---------- 少数グループ横並び ---------- */
-.capture-group-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
-  gap:16px;
-  margin-bottom:18px;
+.capture-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.capture-group-box{
-  background:#fff;
-  border-radius:12px;
-  padding:4px;
-  break-inside:avoid;
-  page-break-inside:avoid;
+.capture-group-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 4px;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* グループ内カード */
-.capture-mode .mini-list{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  align-items:flex-start;
+.capture-mode .mini-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
 }
 
-.capture-mode .mini-list .card{
-  width:170px;
-  min-height:370px;
-  flex:none;
-}
-
-/* ---------- mobile ---------- */
-@media(max-width:600px){
-  header h1{
-    font-size:17px;
-  }
-  .toolbar,
-  .toolbar2{
-    gap:6px;
-    padding:8px;
-  }
-  input,
-  button,
-  select{
-    font-size:12px;
-    padding:7px;
-  }
-  .card{
-    min-height:320px;
-    padding:6px;
-    font-size:10px;
-  }
-  .dress{
-    font-size:11px;
-    min-height:30px;
-  }
-  .memo{
-    font-size:10px;
-  }
-  .want{
-    width:24px;
-    height:24px;
-    line-height:24px;
-    font-size:14px;
-  }
+.capture-mode .mini-list .card {
+  width: 170px;
+  min-height: auto !important;
+  flex: none;
 }
