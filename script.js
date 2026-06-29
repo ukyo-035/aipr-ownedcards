@@ -380,3 +380,57 @@ function capture(name) {
     renderCards();
   });
 }
+
+// ===================================================
+// フィルター全選択・全解除ボタンのイベント（追記部分）
+// ===================================================
+
+// ボタン要素の取得
+const btnRarityAll = document.getElementById("btnRarityAll");
+const btnRarityNone = document.getElementById("btnRarityNone");
+const btnWaveAll = document.getElementById("btnWaveAll");
+const btnWaveNone = document.getElementById("btnWaveNone");
+const btnCharAll = document.getElementById("btnCharAll");
+const btnCharNone = document.getElementById("btnCharNone");
+
+// レアリティ
+if (btnRarityAll) {
+  btnRarityAll.onclick = () => {
+    document.querySelectorAll(".rarity").forEach(el => el.checked = true);
+    renderCards();
+  };
+}
+if (btnRarityNone) {
+  btnRarityNone.onclick = () => {
+    document.querySelectorAll(".rarity").forEach(el => el.checked = false);
+    renderCards();
+  };
+}
+
+// 弾数（wave）
+if (btnWaveAll) {
+  btnWaveAll.onclick = () => {
+    document.querySelectorAll(".wave").forEach(el => el.checked = true);
+    renderCards();
+  };
+}
+if (btnWaveNone) {
+  btnWaveNone.onclick = () => {
+    document.querySelectorAll(".wave").forEach(el => el.checked = false);
+    renderCards();
+  };
+}
+
+// キャラクター
+if (btnCharAll) {
+  btnCharAll.onclick = () => {
+    document.querySelectorAll(".character").forEach(el => el.checked = true);
+    renderCards();
+  };
+}
+if (btnCharNone) {
+  btnCharNone.onclick = () => {
+    document.querySelectorAll(".character").forEach(el => el.checked = false);
+    renderCards();
+  };
+}
