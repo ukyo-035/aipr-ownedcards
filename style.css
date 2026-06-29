@@ -5,7 +5,6 @@
 =================================================== */
 
 /* ---------- 基本 ---------- */
-
 *{
   box-sizing:border-box;
 }
@@ -13,27 +12,17 @@
 body{
   margin:0;
   padding:0;
-  font-family:
-    "Yu Gothic",
-    "Hiragino Sans",
-    sans-serif;
+  font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
   background:#fff8fc;
   color:#333;
 }
 
 /* ---------- header ---------- */
-
 header{
-  background:
-    linear-gradient(
-      90deg,
-      #ffb8da,
-      #ffe7f4
-    );
+  background: linear-gradient(90deg, #ffb8da, #ffe7f4);
   text-align:center;
   padding:14px;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
 }
 
 header h1{
@@ -47,7 +36,6 @@ header p{
 }
 
 /* ---------- toolbar ---------- */
-
 .toolbar,
 .toolbar2{
   display:flex;
@@ -71,7 +59,6 @@ header p{
 }
 
 /* ---------- form ---------- */
-
 input,
 button,
 select{
@@ -106,7 +93,6 @@ label{
 }
 
 /* ---------- details ---------- */
-
 details{
   width:100%;
   background:#fff;
@@ -146,7 +132,6 @@ summary{
 }
 
 /* ---------- status ---------- */
-
 .status{
   display:flex;
   justify-content:space-around;
@@ -159,8 +144,6 @@ summary{
 }
 
 /* ---------- card list ---------- */
-/* スマホ4列 */
-
 #cardList{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -168,26 +151,16 @@ summary{
   padding:8px;
 }
 
-/* PC8列 */
-
 @media(min-width:900px){
-
   #cardList{
     grid-template-columns:repeat(8,1fr);
   }
-
 }
 
 /* ---------- 見出し ---------- */
-
 .wave-title{
   grid-column:1 / -1;
-  background:
-    linear-gradient(
-      90deg,
-      #ffd8ec,
-      #fff1f8
-    );
+  background: linear-gradient(90deg, #ffd8ec, #fff1f8);
   color:#c2185b;
   padding:10px 14px;
   border-radius:12px;
@@ -197,35 +170,30 @@ summary{
 }
 
 /* ---------- card ---------- */
-
 .card{
   position:relative;
   background:#fff;
   border-radius:12px;
   padding:8px;
   min-height:350px;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
   text-align:center;
   font-size:11px;
   overflow:hidden;
 }
 
 /* 未所持 */
-
 .no-own img{
   filter:grayscale(100%);
   opacity:.55;
 }
 
 /* 求カード */
-
 .wanting{
   border:2px solid #ff66b3;
 }
 
 /* ---------- image ---------- */
-
 .card img{
   width:100%;
   aspect-ratio:3 / 4;
@@ -235,7 +203,6 @@ summary{
 }
 
 /* ---------- 求ボタン ---------- */
-
 .want{
   position:absolute;
   top:6px;
@@ -252,7 +219,6 @@ summary{
 }
 
 /* ---------- text ---------- */
-
 .card-id{
   margin-top:4px;
   font-size:11px;
@@ -267,7 +233,6 @@ summary{
 }
 
 /* ---------- count ---------- */
-
 .count-box{
   display:flex;
   justify-content:center;
@@ -288,7 +253,6 @@ summary{
 }
 
 /* ---------- memo ---------- */
-
 .memo{
   width:100%;
   height:30px;
@@ -302,21 +266,18 @@ summary{
 =================================================== */
 
 /* 全体 */
-
 .capture-mode{
   width:1800px !important;
   max-width:none !important;
 }
 
 /* 通常グループ 10列 */
-
 .capture-mode #cardList{
   grid-template-columns:repeat(10,1fr) !important;
   gap:12px !important;
 }
 
 /* カード調整 */
-
 .capture-mode .card{
   min-height:370px;
   padding:8px;
@@ -336,13 +297,24 @@ summary{
   width:42px;
   height:28px;
   font-size:13px;
+  border: none; /* 保存時は入力枠線を消してスッキリさせる */
 }
 
+/* ★要望反映：画像作成時は、+、-ボタンを非表示 */
 .capture-mode .count-box button{
-  width:28px;
-  height:28px;
-  padding:0;
-  font-size:13px;
+  display: none !important;
+}
+
+/* ★要望反映：未入力（値が空）のメモ欄を非表示にする */
+.capture-mode .memo[data-has-memo="false"] {
+  visibility: hidden !important;
+}
+
+/* 入力済みのメモは枠線を消してテキストだけ見せる */
+.capture-mode .memo[data-has-memo="true"] {
+  border: none;
+  background: transparent;
+  text-align: center;
 }
 
 .capture-mode .memo{
@@ -351,11 +323,9 @@ summary{
 }
 
 /* ---------- 少数グループ横並び ---------- */
-
 .capture-group-grid{
   display:grid;
-  grid-template-columns:
-    repeat(auto-fit,minmax(320px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
   gap:16px;
   margin-bottom:18px;
 }
@@ -369,7 +339,6 @@ summary{
 }
 
 /* グループ内カード */
-
 .capture-mode .mini-list{
   display:flex;
   flex-wrap:wrap;
@@ -384,46 +353,37 @@ summary{
 }
 
 /* ---------- mobile ---------- */
-
 @media(max-width:600px){
-
   header h1{
     font-size:17px;
   }
-
   .toolbar,
   .toolbar2{
     gap:6px;
     padding:8px;
   }
-
   input,
   button,
   select{
     font-size:12px;
     padding:7px;
   }
-
   .card{
     min-height:320px;
     padding:6px;
     font-size:10px;
   }
-
   .dress{
     font-size:11px;
     min-height:30px;
   }
-
   .memo{
     font-size:10px;
   }
-
   .want{
     width:24px;
     height:24px;
     line-height:24px;
     font-size:14px;
   }
-
 }
