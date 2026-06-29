@@ -115,9 +115,45 @@ function makeCheckGroup(id, list, name) {
 }
 
 // ----------------------
-// 描画
+// 描画（通常画面用）
 // ----------------------
 function renderCards() {
+  const list = getFilteredAndSortedCards();
+  cardList.innerHTML = "";
+  
+  let own = 0;
+  let want = 0;
+  let currentGroup = "";
+  const mode = groupMode.value;
+
+  list.forEach(card => {
+    const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+    if (data.count > 0) own++;
+    if (data.want) want++;
+
+    let groupName = "";
+    if (mode === "wave") groupName = card.wave;
+    if (mode === "character") groupName = cleanName(card.character);
+
+    if (mode !== "none" && groupName !== currentGroup) {
+      currentGroup = groupName;
+      const title = document.createElement("div");
+      title.className = "wave-title";
+      title.textContent = mode === "wave" ? "💖 " + groupName : "🌟 " + groupName;
+      cardList.appendChild(title);
+    }
+
+    const div = createCardElement(card, data);
+    cardList.appendChild(div);
+  });
+
+  document.getElementById("totalCards").textContent = list.length + "件";
+  document.getElementById("ownedCards").textContent = "所持 " + own;
+  document.getElementById("wantedCards").textContent = "求 " + want;
+}
+
+// フィルター・ソート済みのカード配列を返す共通処理
+function getFilteredAndSortedCards() {
   let list = [...cards];
   const key = searchBox.value.toLowerCase();
 
@@ -156,99 +192,65 @@ function renderCards() {
       a.id.localeCompare(b.id, "ja", { numeric: true })
     );
   }
-
-  cardList.innerHTML = "";
-  let own = 0;
-  let want = 0;
-  let currentGroup = "";
-
-  list.forEach(card => {
-    const data = saveData[card.id] || { count: 0, want: false, memo: "" };
-    if (data.count > 0) own++;
-    if (data.want) want++;
-
-    let groupName = "";
-    if (mode === "wave") groupName = card.wave;
-    if (mode === "character") groupName = cleanName(card.character);
-
-    if (mode !== "none" && groupName !== currentGroup) {
-      currentGroup = groupName;
-      const title = document.createElement("div");
-      title.className = "wave-title";
-      title.textContent = mode === "wave" ? "💖 " + groupName : "🌟 " + groupName;
-      cardList.appendChild(title);
-    }
-
-    const div = document.createElement("div");
-    div.className = "card";
-    if (data.count === 0 && !data.want) div.classList.add("no-own");
-    if (data.want) div.classList.add("wanting");
-
-    // メモが空かどうかの判定用データ属性を追加
-    const hasMemoAttr = data.memo ? 'data-has-memo="true"' : 'data-has-memo="false"';
-
-    div.innerHTML = `
-      <button class="want">${data.want ? "💖" : "🤍"}</button>
-      <img src="img/${card.image}" onerror="this.src=''">
-      <div class="card-id">${card.id}</div>
-      <div class="dress">${card.dress}</div>
-      <div>${cleanName(card.character)}</div>
-      <div>${card.rarity}</div>
-      <div class="count-box">
-        <button class="minus">-</button>
-        <input type="number" min="0" max="99" value="${data.count}">
-        <button class="plus">+</button>
-      </div>
-      <input class="memo" maxlength="20" placeholder="メモ20文字" value="${data.memo}" ${hasMemoAttr}>
-    `;
-
-    const plus = div.querySelector(".plus");
-    const minus = div.querySelector(".minus");
-    const num = div.querySelector("input[type=number]");
-    const heart = div.querySelector(".want");
-    const memo = div.querySelector(".memo");
-
-    plus.onclick = () => { data.count++; update(); };
-    minus.onclick = () => { if (data.count > 0) data.count--; update(); };
-    num.onchange = () => { data.count = Number(num.value) || 0; update(); };
-    
-    heart.onclick = e => {
-      e.preventDefault();
-      e.stopPropagation();
-      data.want = !data.want;
-      update();
-    };
-
-    memo.oninput = () => {
-      data.memo = memo.value.slice(0, 20);
-      // 入力状態に合わせてリアルタイムに属性を更新
-      memo.setAttribute("data-has-memo", data.memo ? "true" : "false");
-      saveData[card.id] = data;
-      save();
-    };
-
-    function update() {
-      saveData[card.id] = data;
-      save();
-      renderCards();
-    }
-
-    cardList.appendChild(div);
-  });
-
-  document.getElementById("totalCards").textContent = list.length + "件";
-  document.getElementById("ownedCards").textContent = "所持 " + own;
-  document.getElementById("wantedCards").textContent = "求 " + want;
+  return list;
 }
 
-// ----------------------
-// 一括選択
-// ----------------------
-function toggleAll(type, state) {
-  document.querySelectorAll("." + type).forEach(el => { el.checked = state; });
-  renderCards();
+// 単一のカードDOM要素を生成する共通処理
+function createCardElement(card, data) {
+  const div = document.createElement("div");
+  div.className = "card";
+  if (data.count === 0 && !data.want) div.classList.add("no-own");
+  if (data.want) div.classList.add("wanting");
+
+  const hasMemoAttr = data.memo ? 'data-has-memo="true"' : 'data-has-memo="false"';
+
+  div.innerHTML = `
+    <button class="want">${data.want ? "💖" : "🤍"}</button>
+    <img src="img/${card.image}" onerror="this.src=''">
+    <div class="card-id">${card.id}</div>
+    <div class="dress">${card.dress}</div>
+    <div>${cleanName(card.character)}</div>
+    <div>${card.rarity}</div>
+    <div class="count-box">
+      <button class="minus">-</button>
+      <input type="number" min="0" max="99" value="${data.count}">
+      <button class="plus">+</button>
+    </div>
+    <input class="memo" maxlength="20" placeholder="メモ20文字" value="${data.memo || ''}" ${hasMemoAttr}>
+  `;
+
+  const plus = div.querySelector(".plus");
+  const minus = div.querySelector(".minus");
+  const num = div.querySelector("input[type=number]");
+  const heart = div.querySelector(".want");
+  const memo = div.querySelector(".memo");
+
+  plus.onclick = () => { data.count++; update(); };
+  minus.onclick = () => { if (data.count > 0) data.count--; update(); };
+  num.onchange = () => { data.count = Number(num.value) || 0; update(); };
+  
+  heart.onclick = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    data.want = !data.want;
+    update();
+  };
+
+  memo.oninput = () => {
+    data.memo = memo.value.slice(0, 20);
+    memo.setAttribute("data-has-memo", data.memo ? "true" : "false");
+    saveData[card.id] = data;
+    save();
+  };
+
+  function update() {
+    saveData[card.id] = data;
+    save();
+    renderCards();
+  }
+
+  return div;
 }
-window.toggleAll = toggleAll;
 
 // ----------------------
 // イベント
@@ -268,18 +270,100 @@ document.getElementById("saveWant").onclick = () => {
   setTimeout(() => { capture("求カード"); }, 300);
 };
 
+// 画像保存用キャプチャ関数（大幅改修）
 function capture(name) {
-  const area = document.getElementById("captureArea");
-  const list = document.getElementById("cardList");
-  const oldWidth = area.style.width;
+  const captureArea = document.getElementById("captureArea");
+  const mode = groupMode.value;
 
-  area.style.width = "1800px";
-  list.classList.add("capture-mode");
+  // 1. 元の状態（HTML構造）をバックアップ
+  const originalHTML = captureArea.innerHTML;
 
-  html2canvas(area, {
+  // 2. アクティブなカードの一覧とデータを再取得
+  const list = getFilteredAndSortedCards();
+
+  // 3. 画像保存専用のHTML構造を再構築する
+  captureArea.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "capture-mode";
+
+  if (mode === "none") {
+    // 見出しなしの場合は、単一の10列グリッドを作成
+    const grid = document.createElement("div");
+    grid.className = "capture-normal-grid";
+    list.forEach(card => {
+      const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+      grid.appendChild(createCardElement(card, data));
+    });
+    wrapper.appendChild(grid);
+  } else {
+    // 弾ごと・キャラごとの場合、まずグループ分けを行う
+    const groups = {};
+    list.forEach(card => {
+      let gName = (mode === "wave") ? card.wave : cleanName(card.character);
+      if (!groups[gName]) groups[gName] = [];
+      groups[gName].push(card);
+    });
+
+    // グループごとのカード枚数を調べて、「通常(多い)」か「少数」かを判定・分類する
+    const groupKeys = Object.keys(groups);
+    
+    // すべてのグループが4枚以下、またはグループ総数が少なく1画面に収めたい場合は「少数グループ横並び」コンテナに配置
+    // それ以外（通常）は縦積みの10列グリッドとして配置
+    const isAllMinor = groupKeys.every(k => groups[k].length <= 4);
+
+    if (isAllMinor && mode === "character") {
+      // キャラごとで少数グループが密集する場合は横並びグリッドレイアウトを適用
+      const groupGrid = document.createElement("div");
+      groupGrid.className = "capture-group-grid";
+
+      groupKeys.forEach(gName => {
+        const groupBox = document.createElement("div");
+        groupBox.className = "capture-group-box";
+        
+        const title = document.createElement("div");
+        title.className = "wave-title";
+        title.textContent = "🌟 " + gName;
+        groupBox.appendChild(title);
+
+        const miniList = document.createElement("div");
+        miniList.className = "mini-list";
+        groups[gName].forEach(card => {
+          const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+          miniList.appendChild(createCardElement(card, data));
+        });
+        groupBox.appendChild(miniList);
+        groupGrid.appendChild(groupBox);
+      });
+      wrapper.appendChild(groupGrid);
+    } else {
+      // 通常の縦積み（枚数が多いグループがある、または弾ごとの場合）
+      groupKeys.forEach(gName => {
+        const title = document.createElement("div");
+        title.className = "wave-title";
+        title.textContent = (mode === "wave" ? "💖 " : "🌟 ") + gName;
+        wrapper.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "capture-normal-grid";
+        groups[gName].forEach(card => {
+          const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+          grid.appendChild(createCardElement(card, data));
+        });
+        wrapper.appendChild(grid);
+      });
+    }
+  }
+
+  captureArea.appendChild(wrapper);
+
+  // 4. 固定幅を設定してhtml2canvasを実行
+  const oldWidth = captureArea.style.width;
+  captureArea.style.width = "1800px";
+
+  html2canvas(captureArea, {
     scale: 2,
     useCORS: true,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff8fc", // 背景色をアプリ本体と統一
     windowWidth: 1800
   }).then(canvas => {
     const a = document.createElement("a");
@@ -287,7 +371,10 @@ function capture(name) {
     a.download = name + ".png";
     a.click();
 
-    area.style.width = oldWidth;
-    list.classList.remove("capture-mode");
+    // 5. 終了後に元の画面（HTML構造と通常幅）に完全復元する
+    captureArea.style.width = oldWidth;
+    captureArea.innerHTML = originalHTML;
+    // 復元したDOMに対して再度イベントや表示件数を同期させる
+    renderCards();
   });
 }
