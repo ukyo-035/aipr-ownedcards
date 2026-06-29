@@ -169,6 +169,7 @@ summary{
   margin-top: 8px;
   margin-bottom: 4px;
   width: 100%;
+  flex-shrink: 0;
 }
 
 /* ---------- 基本カードデザイン ---------- */
@@ -182,10 +183,11 @@ summary{
   font-size: 11px;
   overflow: hidden;
   
-  /* カード内の要素を縦に綺麗に並べ、はみ出しを防ぐ */
+  /* フレックス縦並び */
   display: flex;
   flex-direction: column;
-  height: auto;
+  height: auto !important;
+  min-height: auto !important;
 }
 
 /* 未所持 */
@@ -199,7 +201,7 @@ summary{
   border: 2px solid #ff66b3;
 }
 
-/* 画像 */
+/* 画像：勝手に縮まないよう強制 */
 .card img{
   width: 100%;
   aspect-ratio: 3 / 4;
@@ -207,6 +209,7 @@ summary{
   border-radius: 8px;
   background: #eee;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 /* 求マーク（ハート） */
@@ -225,7 +228,14 @@ summary{
   z-index: 5;
 }
 
-/* テキスト記述 */
+/* 各種テキスト：縮みを防ぐ */
+.card-id,
+.dress,
+.char-name,
+.rarity-badge{
+  flex-shrink: 0;
+}
+
 .card-id{
   font-size: 11px;
   color: #666;
@@ -243,8 +253,9 @@ summary{
   display: flex;
   justify-content: center;
   gap: 4px;
-  margin-top: auto; /* 下部にフィットさせる */
+  margin-top: auto;
   padding-top: 6px;
+  flex-shrink: 0;
 }
 
 .count-box button{
@@ -266,6 +277,7 @@ summary{
   margin-top: 6px;
   font-size: 11px;
   padding: 4px;
+  flex-shrink: 0;
 }
 
 
@@ -273,7 +285,6 @@ summary{
    画像保存モード専用（.capture-mode 内限定スタイル）
 =================================================== */
 
-/* 保存領域全体のベース */
 .capture-mode {
   width: 1800px !important;
   max-width: none !important;
@@ -281,31 +292,33 @@ summary{
   background: #fff8fc;
 }
 
-/* 専用10列グリッド */
+/* 通常10列グリッド */
 .capture-mode .capture-normal-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr) !important;
   gap: 12px !important;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
-/* 画像保存時のカード一括調整 */
+/* 画像保存時のカード高さ絶対可変 */
 .capture-mode .card {
   padding: 8px;
   font-size: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  height: auto !important;
+  min-height: auto !important;
 }
 
 .capture-mode .dress {
   font-size: 12px;
 }
 
-/* 求カード（.wanting）のときは所持数を完全に消し、枠を詰める */
+/* 求カード保存時は所持数を完全消去 */
 .capture-mode .wanting .count-box {
   display: none !important;
 }
 
-/* 一覧保存時の所持数（ボタンを消して入力枠も透明に） */
+/* 通常保存時：数量ボタンを非表示、入力枠は中央で透明化 */
 .capture-mode .count-box button {
   display: none !important;
 }
@@ -314,45 +327,60 @@ summary{
   background: transparent !important;
   font-size: 13px;
   height: auto;
+  text-align: center;
 }
 
-/* メモ未入力：完全に存在を消して下を詰める */
+/* メモ未入力：枠を詰める */
 .capture-mode .memo[data-has-memo="false"] {
   display: none !important;
 }
 
-/* メモ入力済：文字が埋もれないように高さを自動確保し表示 */
+/* メモ入力済：文字量に合わせて自動縦伸び */
 .capture-mode .memo[data-has-memo="true"] {
   display: block !important;
   border: none !important;
-  background: #fff0f7 !important; /* 少し色をつけてメモを目立たせる */
+  background: #fff0f7 !important;
   color: #c2185b;
   border-radius: 6px;
   text-align: center;
   margin-top: 6px;
-  height: auto !important; /* 入力文字に合わせて縦幅を広げる */
+  height: auto !important;
+  min-height: 20px !important;
   padding: 4px 2px;
   font-size: 11px;
   font-weight: bold;
 }
 
-/* 少数グループ横並び表示用のグリッドレイアウト（完全に制御） */
+/* 横並び全体コンテナ */
 .capture-mode .capture-group-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   width: 100%;
+  margin-bottom: 24px;
 }
 
+/* 各グループを包む白ボックス */
 .capture-mode .capture-group-box {
   background: #fff;
   border-radius: 12px;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ffd8ec;
   box-shadow: 0 2px 6px rgba(0,0,0,.03);
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
 }
 
-/* 少数グループ内の横並びカードリスト */
+/* グループ内のタイトル */
+.capture-mode .capture-group-box .wave-title {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  padding: 6px 10px !important;
+  font-size: 13px;
+}
+
+/* 横並びリスト */
 .capture-mode .mini-list {
   display: flex;
   flex-wrap: wrap;
@@ -360,9 +388,9 @@ summary{
   justify-content: flex-start;
 }
 
-/* 少数グループの中にあるカードは固定幅で横並びにする */
+/* 横並び時のカード幅（150pxで固定して横並びを綺麗に保つ） */
 .capture-mode .mini-list .card {
-  width: 155px !important;
+  width: 150px !important;
   flex: none !important;
 }
 
