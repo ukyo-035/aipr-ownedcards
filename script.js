@@ -1,4 +1,4 @@
-// script.js 完全版
+// script.js 最終決定版
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -17,7 +17,7 @@ const noneOnly   = document.getElementById("noneOnly");
 const groupMode  = document.getElementById("groupMode");
 
 // ----------------------
-// 共通
+// 共通処理
 // ----------------------
 function cleanName(name) {
   if (!name) return "";
@@ -42,7 +42,7 @@ function selectedValues(name) {
 }
 
 // ----------------------
-// CSV読込
+// CSV読み込み
 // ----------------------
 fetch(CSV_URL)
   .then(r => r.text())
@@ -50,8 +50,6 @@ fetch(CSV_URL)
     cards = csvToJson(csv);
     makeFilters();
     renderCards();
-    // データ展開後にも確実にボタンを紐付け
-    bindFilterButtons();
   });
 
 function csvToJson(csv) {
@@ -88,15 +86,12 @@ function splitCSV(str) {
 }
 
 // ----------------------
-// フィルター作成
+// フィルター生成
 // ----------------------
 function makeFilters() {
   makeCheckGroup("rarityChecks", unique(cards.map(c => c.rarity)), "rarity");
   makeCheckGroup("waveChecks", unique(cards.map(c => c.wave)), "wave");
   makeCheckGroup("characterChecks", unique(cards.map(c => c.character)), "character");
-  
-  // フィルター生成の直後にボタンを即時紐付け
-  bindFilterButtons();
 }
 
 function makeCheckGroup(id, list, name) {
@@ -121,7 +116,7 @@ function makeCheckGroup(id, list, name) {
 }
 
 // ----------------------
-// 描画（通常画面用）
+// 画面カード描画（通常モード用）
 // ----------------------
 function renderCards() {
   const list = getFilteredAndSortedCards();
@@ -149,7 +144,7 @@ function renderCards() {
       cardList.appendChild(title);
     }
 
-    const div = createCardElement(card, data);
+    const div = createCardElement(card, data, false); // 通常表示はisCapture=false
     cardList.appendChild(div);
   });
 
@@ -158,7 +153,6 @@ function renderCards() {
   document.getElementById("wantedCards").textContent = "求 " + want;
 }
 
-// フィルター・ソート済みのカード配列を返す処理
 function getFilteredAndSortedCards() {
   let list = [...cards];
   const key = searchBox.value.toLowerCase();
@@ -201,14 +195,25 @@ function getFilteredAndSortedCards() {
   return list;
 }
 
-// 単一のカードDOM要素を生成する処理
-function createCardElement(card, data) {
+// ★修正：isCapture（画像出力用か否か）によってメモ欄の構造を完全に分ける
+function createCardElement(card, data, isCapture = false) {
   const div = document.createElement("div");
   div.className = "card";
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
-  // ★修正：placeholderを撤去し、未記入時は完全な空欄にする
+  // メモ部分の出し分け：保存時はinputを使わず単なるテキスト枠(div)にする（埋まり・崩れを永久防止）
+  let memoHtml = "";
+  if (isCapture) {
+    if (data.memo && data.memo.trim() !== "") {
+      memoHtml = `<div class="capture-memo-text">${data.memo}</div>`;
+    } else {
+      memoHtml = `<div class="capture-memo-text empty"></div>`; // 未入力は完全な空の枠
+    }
+  } else {
+    memoHtml = `<input class="memo" maxlength="20" placeholder="" value="${data.memo || ''}">`;
+  }
+
   div.innerHTML = `
     <button class="want">${data.want ? "💖" : "🤍"}</button>
     <img src="img/${card.image}" onerror="this.src=''">
@@ -221,31 +226,33 @@ function createCardElement(card, data) {
       <input type="number" min="0" max="99" value="${data.count}">
       <button class="plus">+</button>
     </div>
-    <input class="memo" maxlength="20" value="${data.memo || ''}">
+    ${memoHtml}
   `;
 
-  const plus = div.querySelector(".plus");
-  const minus = div.querySelector(".minus");
-  const num = div.querySelector("input[type=number]");
-  const heart = div.querySelector(".want");
-  const memo = div.querySelector(".memo");
+  if (!isCapture) {
+    const plus = div.querySelector(".plus");
+    const minus = div.querySelector(".minus");
+    const num = div.querySelector("input[type=number]");
+    const heart = div.querySelector(".want");
+    const memo = div.querySelector(".memo");
 
-  plus.onclick = () => { data.count++; update(); };
-  minus.onclick = () => { if (data.count > 0) data.count--; update(); };
-  num.onchange = () => { data.count = Number(num.value) || 0; update(); };
-  
-  heart.onclick = e => {
-    e.preventDefault();
-    e.stopPropagation();
-    data.want = !data.want;
-    update();
-  };
+    plus.onclick = () => { data.count++; update(); };
+    minus.onclick = () => { if (data.count > 0) data.count--; update(); };
+    num.onchange = () => { data.count = Number(num.value) || 0; update(); };
+    
+    heart.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      data.want = !data.want;
+      update();
+    };
 
-  memo.oninput = () => {
-    data.memo = memo.value.slice(0, 20);
-    saveData[card.id] = data;
-    save();
-  };
+    memo.oninput = () => {
+      data.memo = memo.value.slice(0, 20);
+      saveData[card.id] = data;
+      save();
+    };
+  }
 
   function update() {
     saveData[card.id] = data;
@@ -257,7 +264,7 @@ function createCardElement(card, data) {
 }
 
 // ----------------------
-// イベント
+// イベント監視（ツールバー）
 // ----------------------
 [searchBox, dupOnly, wantOnly, noneOnly, groupMode].forEach(el => {
   if (el) {
@@ -267,7 +274,7 @@ function createCardElement(card, data) {
 });
 
 // ----------------------
-// 保存
+// 画像保存アクション
 // ----------------------
 document.getElementById("saveAll").onclick = () => { capture("一覧"); };
 document.getElementById("saveWant").onclick = () => {
@@ -276,7 +283,6 @@ document.getElementById("saveWant").onclick = () => {
   setTimeout(() => { capture("求カード"); }, 300);
 };
 
-// 画像保存用キャプチャ関数
 function capture(name) {
   const captureArea = document.getElementById("captureArea");
   const mode = groupMode.value;
@@ -293,7 +299,7 @@ function capture(name) {
     grid.className = "capture-normal-grid";
     list.forEach(card => {
       const data = saveData[card.id] || { count: 0, want: false, memo: "" };
-      grid.appendChild(createCardElement(card, data));
+      grid.appendChild(createCardElement(card, data, true)); // 画像化なのでtrue
     });
     wrapper.appendChild(grid);
   } else {
@@ -324,7 +330,7 @@ function capture(name) {
         miniList.className = "mini-list";
         groups[gName].forEach(card => {
           const data = saveData[card.id] || { count: 0, want: false, memo: "" };
-          miniList.appendChild(createCardElement(card, data));
+          miniList.appendChild(createCardElement(card, data, true));
         });
         groupBox.appendChild(miniList);
         groupGrid.appendChild(groupBox);
@@ -343,7 +349,7 @@ function capture(name) {
         grid.className = "capture-normal-grid";
         groups[gName].forEach(card => {
           const data = saveData[card.id] || { count: 0, want: false, memo: "" };
-          grid.appendChild(createCardElement(card, data));
+          grid.appendChild(createCardElement(card, data, true));
         });
         wrapper.appendChild(grid);
       }
@@ -377,31 +383,29 @@ function capture(name) {
 }
 
 // ----------------------
-// ★改善：全選択・全解除ボタン機能（あらゆるタイミングで上書きバインドする統合メソッド）
+// ★超強力：全選択・全解除イベント監視（イベントデリゲーション方式）
 // ----------------------
-function bindFilterButtons() {
-  const binds = [
-    { id: "btnRarityAll",  cls: ".rarity",    state: true },
-    { id: "btnRarityNone", cls: ".rarity",    state: false },
-    { id: "btnWaveAll",    cls: ".wave",      state: true },
-    { id: "btnWaveNone",   cls: ".wave",      state: false },
-    { id: "btnCharAll",    cls: ".character", state: true },
-    { id: "btnCharNone",   cls: ".character", state: false }
-  ];
+document.addEventListener("click", function(e) {
+  // 押し勝てるようにターゲットIDごとに処理を記述
+  const targetId = e.target.id;
+  if (!targetId) return;
 
-  binds.forEach(btn => {
-    const el = document.getElementById(btn.id);
-    if (el) {
-      el.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        document.querySelectorAll(btn.cls).forEach(chk => chk.checked = btn.state);
-        renderCards();
-      };
-    }
-  });
-}
+  let className = "";
+  let targetState = null;
 
-// ページの読み込み完了、データの読み込みなどあらゆるフックで実行する
-document.addEventListener("DOMContentLoaded", bindFilterButtons);
-window.addEventListener("load", bindFilterButtons);
+  if (targetId === "btnRarityAll")  { className = ".rarity";    targetState = true; }
+  if (targetId === "btnRarityNone") { className = ".rarity";    targetState = false; }
+  if (targetId === "btnWaveAll")    { className = ".wave";      targetState = true; }
+  if (targetId === "btnWaveNone")   { className = ".wave";      targetState = false; }
+  if (targetId === "btnCharAll")    { className = ".character"; targetState = true; }
+  if (targetId === "btnCharNone")   { className = ".character"; targetState = false; }
+
+  if (className !== "") {
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll(className).forEach(chk => {
+      chk.checked = targetState;
+    });
+    renderCards(); // チェック状態反映後に再描画
+  }
+});
