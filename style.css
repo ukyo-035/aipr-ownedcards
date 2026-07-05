@@ -1,7 +1,7 @@
 /* ===================================================
-   style.css 【メモ絶対表示・最終確定版】
+   style.css 修正最新版
    PC=8列 / スマホ=4列 / 画像保存=10列
-   少数グループ保存時は横並び制御（高さを完全確保）
+   全選択解除対応 / 保存時も全メモ一律表示
 =================================================== */
 
 /* ---------- 基本 ---------- */
@@ -200,7 +200,7 @@ summary{
   border: 2px solid #ff66b3;
 }
 
-/* 画像：高さを抑えてパーツを潰さないようにする */
+/* 画像 */
 .card img{
   width: 100%;
   max-height: 180px;
@@ -300,31 +300,26 @@ summary{
   margin-bottom: 24px;
 }
 
-/* ★画像保存時のカード：あらゆる高さ制限を解除し中身に100%追従させる */
+/* 画像保存時のカード：高さを固定せず、すべてのメモ枠を一律表示 */
 .capture-mode .card {
   padding: 8px !important;
   font-size: 12px !important;
   box-shadow: 0 2px 4px rgba(0,0,0,.05) !important;
-  
-  display: block !important; /* flexによる内部縮小を完全に無効化 */
+  display: flex !important;
+  flex-direction: column !important;
   height: auto !important;
-  min-height: 1px !important;
-  max-height: none !important;
-  overflow: visible !important; /* 押し出されたメモを隠さず絶対に見せる */
+  min-height: auto !important;
 }
 
 .capture-mode .dress {
   font-size: 11px;
   margin-bottom: 4px;
-  white-space: normal !important; /* 長い名前も確実に改行して収める */
 }
 
-/* 画像：文字数が多いカードでも押し潰さないよう最大高さを少しコンパクトに調整 */
+/* 画像 */
 .capture-mode .card img {
   max-height: 145px !important;
   object-fit: contain !important;
-  display: block !important;
-  margin: 0 auto 6px auto !important;
 }
 
 /* 求カード保存時は所持数を完全消去 */
@@ -332,7 +327,7 @@ summary{
   display: none !important;
 }
 
-/* 通常保存時：数量ボタンを消し、数値を中央に大きく表示 */
+/* 通常保存時：数量ボタンを消し、数値を中央表示 */
 .capture-mode .count-box button {
   display: none !important;
 }
@@ -341,35 +336,23 @@ summary{
   background: transparent !important;
   font-size: 14px !important;
   font-weight: bold !important;
-  height: 20px !important;
-  line-height: 20px !important;
+  height: 24px !important;
+  line-height: 24px !important;
   text-align: center !important;
-  display: block !important;
-  margin: 4px auto 0 auto !important;
+  margin-top: 4px !important;
 }
 
-/* メモ未入力：完全に枠を詰める */
-.capture-mode .memo[data-has-memo="false"] {
-  display: none !important;
-}
-
-/* ★メモ入力済：文字数や改行に関わらず、カードの下部を自動で引き伸ばして絶対に表示する */
-.capture-mode .memo[data-has-memo="true"] {
+/* メモ入力欄：保存時も詰めるのをやめ、通常画面と同じ状態で枠を残す */
+.capture-mode .memo {
   display: block !important;
-  border: none !important;
-  background: #fff0f7 !important;
-  color: #c2185b !important;
-  border-radius: 6px !important;
-  text-align: center !important;
+  width: 100% !important;
+  height: 26px !important;
   margin-top: 6px !important;
-  
-  /* 高さの固定を解除し、2行になっても文字が漏れないようにする */
-  height: auto !important;
-  min-height: 22px !important;
-  max-height: none !important;
-  padding: 4px 2px !important;
+  border: 1px solid #eee !important;
+  background: #fff !important;
+  text-align: center !important;
   font-size: 11px !important;
-  font-weight: bold !important;
+  border-radius: 6px !important;
 }
 
 /* 横並び全体コンテナ */
@@ -409,11 +392,10 @@ summary{
   justify-content: flex-start;
 }
 
-/* 横並び時のカード幅（150pxで固定しつつ高さを自動可変に） */
+/* 横並び時のカード幅（150pxで固定） */
 .capture-mode .mini-list .card {
   width: 150px !important;
   flex: none !important;
-  height: auto !important;
 }
 
 
