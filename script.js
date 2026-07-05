@@ -92,6 +92,9 @@ function makeFilters() {
   makeCheckGroup("rarityChecks", unique(cards.map(c => c.rarity)), "rarity");
   makeCheckGroup("waveChecks", unique(cards.map(c => c.wave)), "wave");
   makeCheckGroup("characterChecks", unique(cards.map(c => c.character)), "character");
+  
+  // フィルター作成直後にボタンを強制バインド
+  bindFilterButtons();
 }
 
 function makeCheckGroup(id, list, name) {
@@ -371,9 +374,9 @@ function capture(name) {
 }
 
 // ----------------------
-// ★修正：全選択・全解除ボタン機能（HTML読込完了後に確実に紐付け）
+// ★改善：全選択・全解除ボタン機能（確実に動作させる統合メソッド）
 // ----------------------
-document.addEventListener("DOMContentLoaded", () => {
+function bindFilterButtons() {
   const binds = [
     { id: "btnRarityAll",  cls: ".rarity",    state: true },
     { id: "btnRarityNone", cls: ".rarity",    state: false },
@@ -386,10 +389,15 @@ document.addEventListener("DOMContentLoaded", () => {
   binds.forEach(btn => {
     const el = document.getElementById(btn.id);
     if (el) {
-      el.onclick = () => {
+      el.onclick = (e) => {
+        e.preventDefault();
         document.querySelectorAll(btn.cls).forEach(chk => chk.checked = btn.state);
         renderCards();
       };
     }
   });
-});
+}
+
+// 念のため画面読み込み完了時にも重ねて実行
+document.addEventListener("DOMContentLoaded", bindFilterButtons);
+window.addEventListener("load", bindFilterButtons);
