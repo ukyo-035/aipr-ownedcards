@@ -1,7 +1,7 @@
 /* ===================================================
    style.css 最終修正決定版
    PC=8列 / スマホ=4列 / 画像保存=10列
-   歪み防止・文字埋まり完全解消
+   歪み防止・文字埋まり完全解消・未入力空白化対応
 =================================================== */
 
 /* ---------- 基本 ---------- */
@@ -200,11 +200,11 @@ summary{
   border: 2px solid #ff66b3;
 }
 
-/* ★画像：幅いっぱいに広げ、縦横比を維持して絶対に歪ませない設定 */
+/* 画像：幅いっぱいに広げ、画像2枚目の正しい比率（黄金比）を維持 */
 .card img{
   width: 100% !important;
   height: auto !important;
-  aspect-ratio: 1 / 1.414 !important; /* カード固有の黄金比を固定 */
+  aspect-ratio: 1 / 1.414 !important;
   object-fit: cover !important;
   border-radius: 8px;
   background: #eee;
@@ -301,7 +301,7 @@ summary{
   margin-bottom: 24px;
 }
 
-/* ★画像保存時のカード：通常画面と100%同じ並び順（flex）を保ち、縦潰れのみを絶対排除 */
+/* 画像保存時のカード：通常画面と100%同じ並び順（flex）を保ち、縦潰れのみを絶対排除 */
 .capture-mode .card {
   padding: 8px !important;
   font-size: 12px !important;
@@ -317,7 +317,7 @@ summary{
   margin-bottom: 4px;
 }
 
-/* 画像：保存時も比率を崩さず歪みを完全防止 */
+/* 画像：画像2枚目のサイズ・比率を完全に再現し、歪みを防止 */
 .capture-mode .card img {
   width: 100% !important;
   height: auto !important;
@@ -345,17 +345,20 @@ summary{
   margin-top: 4px !important;
 }
 
-/* メモ入力欄：ご要望に基づき、保存時も詰めるのを完全にやめて一律表示 */
+/* ★メモ入力欄：文字埋まりを防ぐため高さを固定せず、内側の余白（padding）をしっかり確保 */
 .capture-mode .memo {
   display: block !important;
   width: 100% !important;
-  height: 26px !important;
+  height: auto !important;
+  min-height: 26px !important;
   margin-top: 6px !important;
+  padding: 4px 2px !important;
   border: 1px solid #ddd !important;
   background: #fff !important;
   text-align: center !important;
   font-size: 11px !important;
   border-radius: 6px !important;
+  line-height: 1.2 !important;
 }
 
 /* 横並び全体コンテナ */
