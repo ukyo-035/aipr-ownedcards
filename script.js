@@ -96,6 +96,7 @@ function makeFilters() {
 
 function makeCheckGroup(id, list, name) {
   const area = document.getElementById(id);
+  if (!area) return;
   area.innerHTML = "";
 
   list.forEach(v => {
@@ -202,8 +203,6 @@ function createCardElement(card, data) {
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
-  const hasMemoAttr = data.memo ? 'data-has-memo="true"' : 'data-has-memo="false"';
-
   div.innerHTML = `
     <button class="want">${data.want ? "💖" : "🤍"}</button>
     <img src="img/${card.image}" onerror="this.src=''">
@@ -216,7 +215,7 @@ function createCardElement(card, data) {
       <input type="number" min="0" max="99" value="${data.count}">
       <button class="plus">+</button>
     </div>
-    <input class="memo" maxlength="20" placeholder="メモ20文字" value="${data.memo || ''}" ${hasMemoAttr}>
+    <input class="memo" maxlength="20" placeholder="メモ20文字" value="${data.memo || ''}">
   `;
 
   const plus = div.querySelector(".plus");
@@ -238,7 +237,6 @@ function createCardElement(card, data) {
 
   memo.oninput = () => {
     data.memo = memo.value.slice(0, 20);
-    memo.setAttribute("data-has-memo", data.memo ? "true" : "false");
     saveData[card.id] = data;
     save();
   };
@@ -256,8 +254,10 @@ function createCardElement(card, data) {
 // イベント
 // ----------------------
 [searchBox, dupOnly, wantOnly, noneOnly, groupMode].forEach(el => {
-  el.addEventListener("input", renderCards);
-  el.addEventListener("change", renderCards);
+  if (el) {
+    el.addEventListener("input", renderCards);
+    el.addEventListener("change", renderCards);
+  }
 });
 
 // ----------------------
@@ -275,19 +275,14 @@ function capture(name) {
   const captureArea = document.getElementById("captureArea");
   const mode = groupMode.value;
 
-  // 1. 元の状態をバックアップ
   const originalHTML = captureArea.innerHTML;
-
-  // 2. アクティブなカードの一覧を再取得
   const list = getFilteredAndSortedCards();
 
-  // 3. 画像保存専用のHTML構造を生成
   captureArea.innerHTML = "";
   const wrapper = document.createElement("div");
   wrapper.className = "capture-mode";
 
   if (mode === "none") {
-    // 見出しなし：通常の10列グリッド
     const grid = document.createElement("div");
     grid.className = "capture-normal-grid";
     list.forEach(card => {
@@ -296,7 +291,6 @@ function capture(name) {
     });
     wrapper.appendChild(grid);
   } else {
-    // グループ分けを実行
     const groups = {};
     list.forEach(card => {
       let gName = (mode === "wave") ? card.wave : cleanName(card.character);
@@ -304,7 +298,6 @@ function capture(name) {
       groups[gName].push(card);
     });
 
-    // メインの横並びコンテナ
     const groupGrid = document.createElement("div");
     groupGrid.className = "capture-group-grid";
 
@@ -313,7 +306,6 @@ function capture(name) {
       if (count === 0) return;
 
       if (count <= 10) {
-        // ★修正ポイント：10枚を超えない場合は「横並びボックス」にする
         const groupBox = document.createElement("div");
         groupBox.className = "capture-group-box";
         
@@ -331,7 +323,6 @@ function capture(name) {
         groupBox.appendChild(miniList);
         groupGrid.appendChild(groupBox);
       } else {
-        // 10枚を超える場合は、グリッドを一度リセットして縦積みフルサイズで配置
         if (groupGrid.children.length > 0) {
           wrapper.appendChild(groupGrid.cloneNode(true));
           groupGrid.innerHTML = ""; 
@@ -359,7 +350,6 @@ function capture(name) {
 
   captureArea.appendChild(wrapper);
 
-  // 4. 固定幅を設定して撮影
   const oldWidth = captureArea.style.width;
   captureArea.style.width = "1800px";
 
@@ -374,63 +364,32 @@ function capture(name) {
     a.download = name + ".png";
     a.click();
 
-    // 5. 元の状態に完全復元
     captureArea.style.width = oldWidth;
     captureArea.innerHTML = originalHTML;
     renderCards();
   });
 }
 
-// ===================================================
-// フィルター全選択・全解除ボタンのイベント（追記部分）
-// ===================================================
+// ----------------------
+// ★修正：全選択・全解除ボタン機能（HTML読込完了後に確実に紐付け）
+// ----------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const binds = [
+    { id: "btnRarityAll",  cls: ".rarity",    state: true },
+    { id: "btnRarityNone", cls: ".rarity",    state: false },
+    { id: "btnWaveAll",    cls: ".wave",      state: true },
+    { id: "btnWaveNone",   cls: ".wave",      state: false },
+    { id: "btnCharAll",    cls: ".character", state: true },
+    { id: "btnCharNone",   cls: ".character", state: false }
+  ];
 
-// ボタン要素の取得
-const btnRarityAll = document.getElementById("btnRarityAll");
-const btnRarityNone = document.getElementById("btnRarityNone");
-const btnWaveAll = document.getElementById("btnWaveAll");
-const btnWaveNone = document.getElementById("btnWaveNone");
-const btnCharAll = document.getElementById("btnCharAll");
-const btnCharNone = document.getElementById("btnCharNone");
-
-// レアリティ
-if (btnRarityAll) {
-  btnRarityAll.onclick = () => {
-    document.querySelectorAll(".rarity").forEach(el => el.checked = true);
-    renderCards();
-  };
-}
-if (btnRarityNone) {
-  btnRarityNone.onclick = () => {
-    document.querySelectorAll(".rarity").forEach(el => el.checked = false);
-    renderCards();
-  };
-}
-
-// 弾数（wave）
-if (btnWaveAll) {
-  btnWaveAll.onclick = () => {
-    document.querySelectorAll(".wave").forEach(el => el.checked = true);
-    renderCards();
-  };
-}
-if (btnWaveNone) {
-  btnWaveNone.onclick = () => {
-    document.querySelectorAll(".wave").forEach(el => el.checked = false);
-    renderCards();
-  };
-}
-
-// キャラクター
-if (btnCharAll) {
-  btnCharAll.onclick = () => {
-    document.querySelectorAll(".character").forEach(el => el.checked = true);
-    renderCards();
-  };
-}
-if (btnCharNone) {
-  btnCharNone.onclick = () => {
-    document.querySelectorAll(".character").forEach(el => el.checked = false);
-    renderCards();
-  };
-}
+  binds.forEach(btn => {
+    const el = document.getElementById(btn.id);
+    if (el) {
+      el.onclick = () => {
+        document.querySelectorAll(btn.cls).forEach(chk => chk.checked = btn.state);
+        renderCards();
+      };
+    }
+  });
+});
