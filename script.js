@@ -50,6 +50,8 @@ fetch(CSV_URL)
     cards = csvToJson(csv);
     makeFilters();
     renderCards();
+    // データ展開後にも確実にボタンを紐付け
+    bindFilterButtons();
   });
 
 function csvToJson(csv) {
@@ -93,7 +95,7 @@ function makeFilters() {
   makeCheckGroup("waveChecks", unique(cards.map(c => c.wave)), "wave");
   makeCheckGroup("characterChecks", unique(cards.map(c => c.character)), "character");
   
-  // フィルター作成直後にボタンを強制バインド
+  // フィルター生成の直後にボタンを即時紐付け
   bindFilterButtons();
 }
 
@@ -206,6 +208,7 @@ function createCardElement(card, data) {
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
+  // ★修正：placeholderを撤去し、未記入時は完全な空欄にする
   div.innerHTML = `
     <button class="want">${data.want ? "💖" : "🤍"}</button>
     <img src="img/${card.image}" onerror="this.src=''">
@@ -218,7 +221,7 @@ function createCardElement(card, data) {
       <input type="number" min="0" max="99" value="${data.count}">
       <button class="plus">+</button>
     </div>
-    <input class="memo" maxlength="20" placeholder="メモ20文字" value="${data.memo || ''}">
+    <input class="memo" maxlength="20" value="${data.memo || ''}">
   `;
 
   const plus = div.querySelector(".plus");
@@ -374,7 +377,7 @@ function capture(name) {
 }
 
 // ----------------------
-// ★改善：全選択・全解除ボタン機能（確実に動作させる統合メソッド）
+// ★改善：全選択・全解除ボタン機能（あらゆるタイミングで上書きバインドする統合メソッド）
 // ----------------------
 function bindFilterButtons() {
   const binds = [
@@ -391,6 +394,7 @@ function bindFilterButtons() {
     if (el) {
       el.onclick = (e) => {
         e.preventDefault();
+        e.stopPropagation();
         document.querySelectorAll(btn.cls).forEach(chk => chk.checked = btn.state);
         renderCards();
       };
@@ -398,6 +402,6 @@ function bindFilterButtons() {
   });
 }
 
-// 念のため画面読み込み完了時にも重ねて実行
+// ページの読み込み完了、データの読み込みなどあらゆるフックで実行する
 document.addEventListener("DOMContentLoaded", bindFilterButtons);
 window.addEventListener("load", bindFilterButtons);
