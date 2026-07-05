@@ -1,7 +1,7 @@
 /* ===================================================
-   style.css 修正最新版
+   style.css 最終修正決定版
    PC=8列 / スマホ=4列 / 画像保存=10列
-   全選択解除対応 / 保存時も全メモ一律表示
+   歪み防止・文字埋まり完全解消
 =================================================== */
 
 /* ---------- 基本 ---------- */
@@ -200,15 +200,16 @@ summary{
   border: 2px solid #ff66b3;
 }
 
-/* 画像 */
+/* ★画像：幅いっぱいに広げ、縦横比を維持して絶対に歪ませない設定 */
 .card img{
-  width: 100%;
-  max-height: 180px;
-  object-fit: contain;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1.414 !important; /* カード固有の黄金比を固定 */
+  object-fit: cover !important;
   border-radius: 8px;
   background: #eee;
   margin-bottom: 6px;
-  flex-shrink: 0;
+  flex-shrink: 0 !important;
 }
 
 /* 求マーク（ハート） */
@@ -227,11 +228,19 @@ summary{
   z-index: 5;
 }
 
-/* テキスト記述 */
+/* 各パーツ：絶対に縦に潰れるのを禁止する */
+.card-id,
+.dress,
+.char-name,
+.rarity-badge,
+.count-box,
+.memo {
+  flex-shrink: 0 !important;
+}
+
 .card-id{
   font-size: 11px;
   color: #666;
-  flex-shrink: 0;
 }
 
 .dress{
@@ -239,12 +248,6 @@ summary{
   font-size: 12px;
   font-weight: bold;
   line-height: 1.2;
-  flex-shrink: 0;
-}
-
-.char-name,
-.rarity-badge {
-  flex-shrink: 0;
 }
 
 /* 数量ボタンエリア */
@@ -255,7 +258,6 @@ summary{
   gap: 4px;
   margin-top: auto;
   padding-top: 6px;
-  flex-shrink: 0;
 }
 
 .count-box button{
@@ -277,7 +279,6 @@ summary{
   margin-top: 6px;
   font-size: 11px;
   padding: 4px;
-  flex-shrink: 0;
 }
 
 
@@ -300,7 +301,7 @@ summary{
   margin-bottom: 24px;
 }
 
-/* 画像保存時のカード：高さを固定せず、すべてのメモ枠を一律表示 */
+/* ★画像保存時のカード：通常画面と100%同じ並び順（flex）を保ち、縦潰れのみを絶対排除 */
 .capture-mode .card {
   padding: 8px !important;
   font-size: 12px !important;
@@ -316,10 +317,12 @@ summary{
   margin-bottom: 4px;
 }
 
-/* 画像 */
+/* 画像：保存時も比率を崩さず歪みを完全防止 */
 .capture-mode .card img {
-  max-height: 145px !important;
-  object-fit: contain !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1.414 !important;
+  object-fit: cover !important;
 }
 
 /* 求カード保存時は所持数を完全消去 */
@@ -342,13 +345,13 @@ summary{
   margin-top: 4px !important;
 }
 
-/* メモ入力欄：保存時も詰めるのをやめ、通常画面と同じ状態で枠を残す */
+/* メモ入力欄：ご要望に基づき、保存時も詰めるのを完全にやめて一律表示 */
 .capture-mode .memo {
   display: block !important;
   width: 100% !important;
   height: 26px !important;
   margin-top: 6px !important;
-  border: 1px solid #eee !important;
+  border: 1px solid #ddd !important;
   background: #fff !important;
   text-align: center !important;
   font-size: 11px !important;
@@ -392,7 +395,7 @@ summary{
   justify-content: flex-start;
 }
 
-/* 横並び時のカード幅（150pxで固定） */
+/* 横並び時のカード幅（画像2枚目のカードサイズに完全固定） */
 .capture-mode .mini-list .card {
   width: 150px !important;
   flex: none !important;
@@ -418,9 +421,6 @@ summary{
   .card{
     padding: 6px;
     font-size: 10px;
-  }
-  .card img {
-    max-height: 130px;
   }
   .dress{
     font-size: 11px;
