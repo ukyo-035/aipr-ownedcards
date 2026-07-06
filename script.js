@@ -1,4 +1,4 @@
-// script.js 2段階見出し不具合修正安全版
+// script.js 最終決定版（キャラごと選択時：第一キャラ・第二弾・第三IDでソート）
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -20,11 +20,11 @@ const groupMode  = document.getElementById("groupMode");
 // 共通処理
 // ----------------------
 function cleanName(name) {
-  if (!name) return "その他";
+  if (!name) return "";
   return String(name)
     .replace(/^[^\d]*/, "")
     .replace(/^\d+\s*[_-]?\s*/, "")
-    .trim() || "その他";
+    .trim();
 }
 
 function save() {
@@ -34,7 +34,7 @@ function save() {
 function unique(arr) {
   return [...new Set(arr)]
     .filter(Boolean)
-    .sort((a, b) => String(a).localeCompare(String(b), "ja", { numeric: true }));
+    .sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
 }
 
 function selectedValues(name) {
@@ -51,33 +51,18 @@ fetch(CSV_URL)
     makeFilters();
     renderCards();
     bindFilterButtons();
-  })
-  .catch(err => {
-    console.error("CSV読み込みエラー:", err);
   });
 
 function csvToJson(csv) {
-  if (!csv) return [];
   const lines = csv.trim().split("\n");
-  if (lines.length === 0) return [];
-  
-  const head = splitCSV(lines[0]).map(h => h.trim());
+  const head = splitCSV(lines[0]);
 
   return lines.slice(1).map(line => {
     const cols = splitCSV(line);
     let obj = {};
     head.forEach((h, i) => {
-      if (h) {
-        obj[h] = cols[i]?.trim() || "";
-      }
+      obj[h.trim()] = cols[i]?.trim() || "";
     });
-    // 万が一特定の列がなくてもエラーにならないよう空文字で初期化保護
-    if (!obj.id) obj.id = "";
-    if (!obj.dress) obj.dress = "";
-    if (!obj.character) obj.character = "";
-    if (!obj.rarity) obj.rarity = "";
-    if (!obj.wave) obj.wave = "";
-    if (!obj.image) obj.image = "";
     return obj;
   });
 }
@@ -154,82 +139,55 @@ function bindFilterButtons() {
 }
 
 // ----------------------
-// 画面カード描画
+// 画面カード描画（通常モード用）
 // ----------------------
 function renderCards() {
-  if (!cardList) return;
   const list = getFilteredAndSortedCards();
   cardList.innerHTML = "";
   
   let own = 0;
   let want = 0;
-  let currentMainGroup = "";
-  let currentSubGroup = "";
-  const mode = groupMode ? groupMode.value : "none";
+  let currentGroup = "";
+  const mode = groupMode.value;
 
   list.forEach(card => {
     const data = saveData[card.id] || { count: 0, want: false, memo: "" };
     if (data.count > 0) own++;
     if (data.want) want++;
 
-    if (mode === "wave") {
-      if (card.wave !== currentMainGroup) {
-        currentMainGroup = card.wave;
-        const title = document.createElement("div");
-        title.className = "wave-title";
-        title.textContent = "💖 " + (currentMainGroup || "未設定");
-        cardList.appendChild(title);
-      }
-    } else if (mode === "character") {
-      const charName = cleanName(card.character);
-      // 大見出し
-      if (charName !== currentMainGroup) {
-        currentMainGroup = charName;
-        currentSubGroup = ""; 
-        const title = document.createElement("div");
-        title.className = "wave-title";
-        title.style.marginTop = "25px";
-        title.textContent = "🌟 " + currentMainGroup;
-        cardList.appendChild(title);
-      }
-      // 小見出し
-      if (card.wave !== currentSubGroup) {
-        currentSubGroup = card.wave;
-        const subTitle = document.createElement("div");
-        subTitle.className = "wave-title sub-wave-title";
-        subTitle.style.fontSize = "15px";
-        subTitle.style.paddingLeft = "15px";
-        subTitle.style.borderLeft = "4px solid #ff80b3";
-        subTitle.style.background = "rgba(255, 240, 245, 0.6)";
-        subTitle.style.marginTop = "10px";
-        subTitle.textContent = "🎬 " + (currentSubGroup || "他");
-        cardList.appendChild(subTitle);
-      }
+    let groupName = "";
+    if (mode === "wave") groupName = card.wave;
+    if (mode === "character") groupName = cleanName(card.character);
+
+    if (mode !== "none" && groupName !== currentGroup) {
+      currentGroup = groupName;
+      const title = document.createElement("div");
+      title.className = "wave-title";
+      title.textContent = mode === "wave" ? "💖 " + groupName : "🌟 " + groupName;
+      cardList.appendChild(title);
     }
 
     const div = createCardElement(card, data, false); 
     cardList.appendChild(div);
   });
 
-  const totalEl = document.getElementById("totalCards");
-  const ownedEl = document.getElementById("ownedCards");
-  const wantedEl = document.getElementById("wantedCards");
-
-  if (totalEl) totalEl.textContent = list.length + "件";
-  if (ownedEl) ownedEl.textContent = "所持 " + own;
-  if (wantedEl) wantedEl.textContent = "求 " + want;
+  document.getElementById("totalCards").textContent = list.length + "件";
+  document.getElementById("ownedCards").textContent = "所持 " + own;
+  document.getElementById("wantedCards").textContent = "求 " + want;
 }
 
+// ----------------------
+// ★修正：並び替えロジックの多重ソート対応
+// ----------------------
 function getFilteredAndSortedCards() {
-  if (!cards || cards.length === 0) return [];
   let list = [...cards];
-  const key = searchBox ? searchBox.value.toLowerCase() : "";
+  const key = searchBox.value.toLowerCase();
 
   if (key) {
     list = list.filter(c =>
-      (c.id && c.id.toLowerCase().includes(key)) ||
-      (c.dress && c.dress.toLowerCase().includes(key)) ||
-      (c.character && cleanName(c.character).toLowerCase().includes(key))
+      c.id.toLowerCase().includes(key) ||
+      c.dress.toLowerCase().includes(key) ||
+      cleanName(c.character).toLowerCase().includes(key)
     );
   }
 
@@ -245,40 +203,30 @@ function getFilteredAndSortedCards() {
 
   list = list.filter(card => {
     const d = saveData[card.id] || { count: 0, want: false, memo: "" };
-    if (dupOnly && dupOnly.checked && d.count < 1) return false;
-    if (wantOnly && wantOnly.checked && !d.want) return false;
-    if (noneOnly && noneOnly.checked && d.count > 0) return false;
+    if (dupOnly.checked && d.count < 1) return false;
+    if (wantOnly.checked && !d.want) return false;
+    if (noneOnly.checked && d.count > 0) return false;
     return true;
   });
 
-  const mode = groupMode ? groupMode.value : "none";
+  const mode = groupMode.value;
   if (mode === "character") {
+    // 【修正】第一：キャラ順 -> 第二：弾(wave)順 -> 第三：カードID順
     list.sort((a, b) => {
-      const valA_char = a.character || "";
-      const valB_char = b.character || "";
-      const compChar = valA_char.localeCompare(valB_char, "ja", { numeric: true });
-      if (compChar !== 0) return compChar;
+      const compChar = a.character.localeCompare(b.character, "ja", { numeric: true });
+      if (compChar !== 0) return compChar; // キャラが違えばキャラ順
 
-      const valA_wave = a.wave || "";
-      const valB_wave = b.wave || "";
-      const compWave = valA_wave.localeCompare(valB_wave, "ja", { numeric: true });
-      if (compWave !== 0) return compWave;
+      const compWave = a.wave.localeCompare(b.wave, "ja", { numeric: true });
+      if (compWave !== 0) return compWave; // キャラが同じなら弾順
 
-      const valA_id = a.id || "";
-      const valB_id = b.id || "";
-      return valA_id.localeCompare(valB_id, "ja", { numeric: true });
+      return a.id.localeCompare(b.id, "ja", { numeric: true }); // キャラも弾も同じならID順
     });
   } else {
-    list.sort((a, b) => {
-      const valA_wave = a.wave || "";
-      const valB_wave = b.wave || "";
-      const compWave = valA_wave.localeCompare(valB_wave, "ja", { numeric: true });
-      if (compWave !== 0) return compWave;
-
-      const valA_id = a.id || "";
-      const valB_id = b.id || "";
-      return valA_id.localeCompare(valB_id, "ja", { numeric: true });
-    });
+    // 弾ごと、または見出しなしの場合：第一弾(wave)順 -> 第二カードID順
+    list.sort((a, b) =>
+      a.wave.localeCompare(b.wave, "ja", { numeric: true }) ||
+      a.id.localeCompare(b.id, "ja", { numeric: true })
+    );
   }
   return list;
 }
@@ -302,11 +250,11 @@ function createCardElement(card, data, isCapture = false) {
 
   div.innerHTML = `
     <button class="want">${data.want ? "💖" : "🤍"}</button>
-    <img src="img/${card.image || ''}" onerror="this.src=''">
-    <div class="card-id">${card.id || ''}</div>
-    <div class="dress">${card.dress || ''}</div>
+    <img src="img/${card.image}" onerror="this.src=''">
+    <div class="card-id">${card.id}</div>
+    <div class="dress">${card.dress}</div>
     <div class="char-name">${cleanName(card.character)}</div>
-    <div class="rarity-badge">${card.rarity || ''}</div>
+    <div class="rarity-badge">${card.rarity}</div>
     <div class="count-box">
       <button class="minus">-</button>
       <input type="number" min="0" max="99" value="${data.count}">
@@ -322,26 +270,22 @@ function createCardElement(card, data, isCapture = false) {
     const heart = div.querySelector(".want");
     const memo = div.querySelector(".memo");
 
-    if (plus) plus.onclick = () => { data.count++; update(); };
-    if (minus) minus.onclick = () => { if (data.count > 0) data.count--; update(); };
-    if (num) num.onchange = () => { data.count = Number(num.value) || 0; update(); };
+    plus.onclick = () => { data.count++; update(); };
+    minus.onclick = () => { if (data.count > 0) data.count--; update(); };
+    num.onchange = () => { data.count = Number(num.value) || 0; update(); };
     
-    if (heart) {
-      heart.onclick = e => {
-        e.preventDefault();
-        e.stopPropagation();
-        data.want = !data.want;
-        update();
-      };
-    }
+    heart.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      data.want = !data.want;
+      update();
+    };
 
-    if (memo) {
-      memo.oninput = () => {
-        data.memo = memo.value.slice(0, 20);
-        saveData[card.id] = data;
-        save();
-      };
-    }
+    memo.oninput = () => {
+      data.memo = memo.value.slice(0, 20);
+      saveData[card.id] = data;
+      save();
+    };
   }
 
   function update() {
@@ -366,20 +310,16 @@ function createCardElement(card, data, isCapture = false) {
 // ----------------------
 // 画像保存アクション
 // ----------------------
-const saveAllBtn = document.getElementById("saveAll");
-const saveWantBtn = document.getElementById("saveWant");
-
-if (saveAllBtn) saveAllBtn.onclick = () => { capture("一覧"); };
-if (saveWantBtn) saveWantBtn.onclick = () => {
-  if (wantOnly) wantOnly.checked = true;
+document.getElementById("saveAll").onclick = () => { capture("一覧"); };
+document.getElementById("saveWant").onclick = () => {
+  wantOnly.checked = true;
   renderCards();
   setTimeout(() => { capture("求カード"); }, 300);
 };
 
 function capture(name) {
   const captureArea = document.getElementById("captureArea");
-  if (!captureArea) return;
-  const mode = groupMode ? groupMode.value : "none";
+  const mode = groupMode.value;
 
   const originalHTML = captureArea.innerHTML;
   const list = getFilteredAndSortedCards();
@@ -396,12 +336,12 @@ function capture(name) {
       grid.appendChild(createCardElement(card, data, true));
     });
     wrapper.appendChild(grid);
-  } else if (mode === "wave") {
+  } else {
     const groups = {};
     list.forEach(card => {
-      const w = card.wave || "未設定";
-      if (!groups[w]) groups[w] = [];
-      groups[w].push(card);
+      let gName = (mode === "wave") ? card.wave : cleanName(card.character);
+      if (!groups[gName]) groups[gName] = [];
+      groups[gName].push(card);
     });
 
     const groupGrid = document.createElement("div");
@@ -417,4 +357,71 @@ function capture(name) {
         
         const title = document.createElement("div");
         title.className = "wave-title";
-        title.textContent = "💖 "
+        title.textContent = (mode === "wave" ? "💖 " : "🌟 ") + gName;
+        groupBox.appendChild(title);
+
+        const miniList = document.createElement("div");
+        miniList.className = "mini-list";
+        groups[gName].forEach(card => {
+          const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+          miniList.appendChild(createCardElement(card, data, true));
+        });
+        groupBox.appendChild(miniList);
+        groupGrid.appendChild(groupBox);
+      } else {
+        if (groupGrid.children.length > 0) {
+          wrapper.appendChild(groupGrid.cloneNode(true));
+          groupGrid.innerHTML = ""; 
+        }
+        
+        const title = document.createElement("div");
+        title.className = "wave-title";
+        title.textContent = (mode === "wave" ? "💖 " : "🌟 ") + gName;
+        wrapper.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "capture-normal-grid";
+        groups[gName].forEach(card => {
+          const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+          grid.appendChild(createCardElement(card, data, true));
+        });
+        wrapper.appendChild(grid);
+      }
+    });
+
+    if (groupGrid.children.length > 0) {
+      wrapper.appendChild(groupGrid);
+    }
+  }
+
+  captureArea.appendChild(wrapper);
+
+  const oldWidth = captureArea.style.width;
+  captureArea.style.width = "1800px";
+
+  html2canvas(captureArea, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#fff8fc",
+    windowWidth: 1800
+  }).then(canvas => {
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/png");
+    a.download = name + ".png";
+    a.click();
+
+    captureArea.style.width = oldWidth;
+    captureArea.innerHTML = originalHTML;
+    renderCards();
+  });
+}
+
+// ----------------------
+// HTMLの onclick="toggleAll(...)" 用に関数をグローバルに公開
+// ----------------------
+window.toggleAll = function(className, state) {
+  document.querySelectorAll("." + className).forEach(chk => {
+    chk.checked = state;
+  });
+  renderCards();
+};
