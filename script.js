@@ -1,4 +1,4 @@
-// script.js 移植・融合版
+// script.js 最終決定版（HTMLのtoggleAllに完全対応）
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -50,8 +50,6 @@ fetch(CSV_URL)
     cards = csvToJson(csv);
     makeFilters();
     renderCards();
-    // 最初のコードの通り、フィルター生成直後にボタンを確実にバインドする
-    bindFilterButtons();
   });
 
 function csvToJson(csv) {
@@ -118,29 +116,14 @@ function makeCheckGroup(id, list, name) {
 }
 
 // ----------------------
-// ★初期コードから完全移植：全選択・全解除ボタンの紐付け機能
+// ★HTMLの onclick="toggleAll(...)" から呼び出される関数を完全復活！
 // ----------------------
-function bindFilterButtons() {
-  const config = [
-    { btn: "btnRarityAll",  cls: ".rarity",    state: true },
-    { btn: "btnRarityNone", cls: ".rarity",    state: false },
-    { btn: "btnWaveAll",    cls: ".wave",      state: true },
-    { btn: "btnWaveNone",   cls: ".wave",      state: false },
-    { btn: "btnCharAll",    cls: ".character", state: true },
-    { btn: "btnCharNone",   cls: ".character", state: false }
-  ];
-
-  config.forEach(item => {
-    const el = document.getElementById(item.btn);
-    if (el) {
-      el.onclick = (e) => {
-        e.preventDefault();
-        document.querySelectorAll(item.cls).forEach(chk => chk.checked = item.state);
-        renderCards();
-      };
-    }
+window.toggleAll = function(className, state) {
+  document.querySelectorAll("." + className).forEach(chk => {
+    chk.checked = state;
   });
-}
+  renderCards(); // チェック状態を画面に反映
+};
 
 // ----------------------
 // 画面カード描画（通常モード用）
@@ -228,7 +211,7 @@ function createCardElement(card, data, isCapture = false) {
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
-  // 出力時のメモ欄文字埋まり解消・未入力空白化ロジックはそのまま維持
+  // 出力時のメモ欄デザイン（文字埋まり防止・空白化）は完璧な状態を維持
   let memoHtml = "";
   if (isCapture) {
     if (data.memo && data.memo.trim() !== "") {
