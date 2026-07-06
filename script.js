@@ -1,4 +1,4 @@
-// script.js 最終決定版（ボタンの判定バグ完全修正）
+// script.js 移植・融合版
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -50,6 +50,8 @@ fetch(CSV_URL)
     cards = csvToJson(csv);
     makeFilters();
     renderCards();
+    // 最初のコードの通り、フィルター生成直後にボタンを確実にバインドする
+    bindFilterButtons();
   });
 
 function csvToJson(csv) {
@@ -112,6 +114,31 @@ function makeCheckGroup(id, list, name) {
 
   area.querySelectorAll("input").forEach(el => {
     el.addEventListener("change", renderCards);
+  });
+}
+
+// ----------------------
+// ★初期コードから完全移植：全選択・全解除ボタンの紐付け機能
+// ----------------------
+function bindFilterButtons() {
+  const config = [
+    { btn: "btnRarityAll",  cls: ".rarity",    state: true },
+    { btn: "btnRarityNone", cls: ".rarity",    state: false },
+    { btn: "btnWaveAll",    cls: ".wave",      state: true },
+    { btn: "btnWaveNone",   cls: ".wave",      state: false },
+    { btn: "btnCharAll",    cls: ".character", state: true },
+    { btn: "btnCharNone",   cls: ".character", state: false }
+  ];
+
+  config.forEach(item => {
+    const el = document.getElementById(item.btn);
+    if (el) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        document.querySelectorAll(item.cls).forEach(chk => chk.checked = item.state);
+        renderCards();
+      };
+    }
   });
 }
 
@@ -201,6 +228,7 @@ function createCardElement(card, data, isCapture = false) {
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
+  // 出力時のメモ欄文字埋まり解消・未入力空白化ロジックはそのまま維持
   let memoHtml = "";
   if (isCapture) {
     if (data.memo && data.memo.trim() !== "") {
@@ -379,34 +407,3 @@ function capture(name) {
     renderCards();
   });
 }
-
-// ----------------------
-// ★修正：全選択・全解除イベント監視（文字クリックでも100%拾うようにclosestに改良）
-// ----------------------
-document.addEventListener("click", function(e) {
-  // クリックされた要素、またはその一番近い親のbutton要素を取得
-  const btn = e.target.closest("button");
-  if (!btn) return; // ボタン以外なら何もしない
-
-  const targetId = btn.id;
-  if (!targetId) return;
-
-  let className = "";
-  let targetState = null;
-
-  if (targetId === "btnRarityAll")  { className = ".rarity";    targetState = true; }
-  if (targetId === "btnRarityNone") { className = ".rarity";    targetState = false; }
-  if (targetId === "btnWaveAll")    { className = ".wave";      targetState = true; }
-  if (targetId === "btnWaveNone")   { className = ".wave";      targetState = false; }
-  if (targetId === "btnCharAll")    { className = ".character"; targetState = true; }
-  if (targetId === "btnCharNone")   { className = ".character"; targetState = false; }
-
-  if (className !== "") {
-    e.preventDefault();
-    e.stopPropagation();
-    document.querySelectorAll(className).forEach(chk => {
-      chk.checked = targetState;
-    });
-    renderCards(); // チェック切り替え後に画面を再描画
-  }
-});
