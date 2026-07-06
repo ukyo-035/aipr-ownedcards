@@ -1,4 +1,4 @@
-// script.js 最終決定版
+// script.js 最終決定版（ボタンの判定バグ完全修正）
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -144,7 +144,7 @@ function renderCards() {
       cardList.appendChild(title);
     }
 
-    const div = createCardElement(card, data, false); // 通常表示はisCapture=false
+    const div = createCardElement(card, data, false); 
     cardList.appendChild(div);
   });
 
@@ -195,20 +195,18 @@ function getFilteredAndSortedCards() {
   return list;
 }
 
-// ★修正：isCapture（画像出力用か否か）によってメモ欄の構造を完全に分ける
 function createCardElement(card, data, isCapture = false) {
   const div = document.createElement("div");
   div.className = "card";
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
-  // メモ部分の出し分け：保存時はinputを使わず単なるテキスト枠(div)にする（埋まり・崩れを永久防止）
   let memoHtml = "";
   if (isCapture) {
     if (data.memo && data.memo.trim() !== "") {
       memoHtml = `<div class="capture-memo-text">${data.memo}</div>`;
     } else {
-      memoHtml = `<div class="capture-memo-text empty"></div>`; // 未入力は完全な空の枠
+      memoHtml = `<div class="capture-memo-text empty"></div>`;
     }
   } else {
     memoHtml = `<input class="memo" maxlength="20" placeholder="" value="${data.memo || ''}">`;
@@ -299,7 +297,7 @@ function capture(name) {
     grid.className = "capture-normal-grid";
     list.forEach(card => {
       const data = saveData[card.id] || { count: 0, want: false, memo: "" };
-      grid.appendChild(createCardElement(card, data, true)); // 画像化なのでtrue
+      grid.appendChild(createCardElement(card, data, true));
     });
     wrapper.appendChild(grid);
   } else {
@@ -383,11 +381,14 @@ function capture(name) {
 }
 
 // ----------------------
-// ★超強力：全選択・全解除イベント監視（イベントデリゲーション方式）
+// ★修正：全選択・全解除イベント監視（文字クリックでも100%拾うようにclosestに改良）
 // ----------------------
 document.addEventListener("click", function(e) {
-  // 押し勝てるようにターゲットIDごとに処理を記述
-  const targetId = e.target.id;
+  // クリックされた要素、またはその一番近い親のbutton要素を取得
+  const btn = e.target.closest("button");
+  if (!btn) return; // ボタン以外なら何もしない
+
+  const targetId = btn.id;
   if (!targetId) return;
 
   let className = "";
@@ -406,6 +407,6 @@ document.addEventListener("click", function(e) {
     document.querySelectorAll(className).forEach(chk => {
       chk.checked = targetState;
     });
-    renderCards(); // チェック状態反映後に再描画
+    renderCards(); // チェック切り替え後に画面を再描画
   }
 });
