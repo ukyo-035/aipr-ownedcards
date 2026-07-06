@@ -1,4 +1,4 @@
-// script.js 最終決定版（HTMLのtoggleAllに完全対応）
+// script.js 最終決定版（キャラごと選択時：第一キャラ・第二弾・第三IDでソート）
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -50,6 +50,7 @@ fetch(CSV_URL)
     cards = csvToJson(csv);
     makeFilters();
     renderCards();
+    bindFilterButtons();
   });
 
 function csvToJson(csv) {
@@ -115,15 +116,27 @@ function makeCheckGroup(id, list, name) {
   });
 }
 
-// ----------------------
-// ★HTMLの onclick="toggleAll(...)" から呼び出される関数を完全復活！
-// ----------------------
-window.toggleAll = function(className, state) {
-  document.querySelectorAll("." + className).forEach(chk => {
-    chk.checked = state;
+function bindFilterButtons() {
+  const config = [
+    { btn: "btnRarityAll",  cls: ".rarity",    state: true },
+    { btn: "btnRarityNone", cls: ".rarity",    state: false },
+    { btn: "btnWaveAll",    cls: ".wave",      state: true },
+    { btn: "btnWaveNone",   cls: ".wave",      state: false },
+    { btn: "btnCharAll",    cls: ".character", state: true },
+    { btn: "btnCharNone",   cls: ".character", state: false }
+  ];
+
+  config.forEach(item => {
+    const el = document.getElementById(item.btn);
+    if (el) {
+      el.onclick = (e) => {
+        e.preventDefault();
+        document.querySelectorAll(item.cls).forEach(chk => chk.checked = item.state);
+        renderCards();
+      };
+    }
   });
-  renderCards(); // チェック状態を画面に反映
-};
+}
 
 // ----------------------
 // 画面カード描画（通常モード用）
@@ -163,6 +176,9 @@ function renderCards() {
   document.getElementById("wantedCards").textContent = "求 " + want;
 }
 
+// ----------------------
+// ★修正：並び替えロジックの多重ソート対応
+// ----------------------
 function getFilteredAndSortedCards() {
   let list = [...cards];
   const key = searchBox.value.toLowerCase();
@@ -195,8 +211,18 @@ function getFilteredAndSortedCards() {
 
   const mode = groupMode.value;
   if (mode === "character") {
-    list.sort((a, b) => a.character.localeCompare(b.character, "ja", { numeric: true }));
+    // 【修正】第一：キャラ順 -> 第二：弾(wave)順 -> 第三：カードID順
+    list.sort((a, b) => {
+      const compChar = a.character.localeCompare(b.character, "ja", { numeric: true });
+      if (compChar !== 0) return compChar; // キャラが違えばキャラ順
+
+      const compWave = a.wave.localeCompare(b.wave, "ja", { numeric: true });
+      if (compWave !== 0) return compWave; // キャラが同じなら弾順
+
+      return a.id.localeCompare(b.id, "ja", { numeric: true }); // キャラも弾も同じならID順
+    });
   } else {
+    // 弾ごと、または見出しなしの場合：第一弾(wave)順 -> 第二カードID順
     list.sort((a, b) =>
       a.wave.localeCompare(b.wave, "ja", { numeric: true }) ||
       a.id.localeCompare(b.id, "ja", { numeric: true })
@@ -211,7 +237,6 @@ function createCardElement(card, data, isCapture = false) {
   if (data.count === 0 && !data.want) div.classList.add("no-own");
   if (data.want) div.classList.add("wanting");
 
-  // 出力時のメモ欄デザイン（文字埋まり防止・空白化）は完璧な状態を維持
   let memoHtml = "";
   if (isCapture) {
     if (data.memo && data.memo.trim() !== "") {
@@ -390,3 +415,13 @@ function capture(name) {
     renderCards();
   });
 }
+
+// ----------------------
+// HTMLの onclick="toggleAll(...)" 用に関数をグローバルに公開
+// ----------------------
+window.toggleAll = function(className, state) {
+  document.querySelectorAll("." + className).forEach(chk => {
+    chk.checked = state;
+  });
+  renderCards();
+};
