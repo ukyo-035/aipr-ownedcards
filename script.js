@@ -1,4 +1,4 @@
-// script.js 最終決定版（キャラ選択時に大見出し：キャラ / 小見出し：弾数の2段階構造に対応）
+// script.js 2段階見出し不具合修正安全版
 let cards = [];
 let saveData = JSON.parse(localStorage.getItem("aipriData")) || {};
 
@@ -20,11 +20,11 @@ const groupMode  = document.getElementById("groupMode");
 // 共通処理
 // ----------------------
 function cleanName(name) {
-  if (!name) return "";
+  if (!name) return "その他";
   return String(name)
     .replace(/^[^\d]*/, "")
     .replace(/^\d+\s*[_-]?\s*/, "")
-    .trim();
+    .trim() || "その他";
 }
 
 function save() {
@@ -34,7 +34,7 @@ function save() {
 function unique(arr) {
   return [...new Set(arr)]
     .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
+    .sort((a, b) => String(a).localeCompare(String(b), "ja", { numeric: true }));
 }
 
 function selectedValues(name) {
@@ -51,18 +51,33 @@ fetch(CSV_URL)
     makeFilters();
     renderCards();
     bindFilterButtons();
+  })
+  .catch(err => {
+    console.error("CSV読み込みエラー:", err);
   });
 
 function csvToJson(csv) {
+  if (!csv) return [];
   const lines = csv.trim().split("\n");
-  const head = splitCSV(lines[0]);
+  if (lines.length === 0) return [];
+  
+  const head = splitCSV(lines[0]).map(h => h.trim());
 
   return lines.slice(1).map(line => {
     const cols = splitCSV(line);
     let obj = {};
     head.forEach((h, i) => {
-      obj[h.trim()] = cols[i]?.trim() || "";
+      if (h) {
+        obj[h] = cols[i]?.trim() || "";
+      }
     });
+    // 万が一特定の列がなくてもエラーにならないよう空文字で初期化保護
+    if (!obj.id) obj.id = "";
+    if (!obj.dress) obj.dress = "";
+    if (!obj.character) obj.character = "";
+    if (!obj.rarity) obj.rarity = "";
+    if (!obj.wave) obj.wave = "";
+    if (!obj.image) obj.image = "";
     return obj;
   });
 }
@@ -139,9 +154,10 @@ function bindFilterButtons() {
 }
 
 // ----------------------
-// 画面カード描画（通常モード用）
+// 画面カード描画
 // ----------------------
 function renderCards() {
+  if (!cardList) return;
   const list = getFilteredAndSortedCards();
   cardList.innerHTML = "";
   
@@ -149,7 +165,7 @@ function renderCards() {
   let want = 0;
   let currentMainGroup = "";
   let currentSubGroup = "";
-  const mode = groupMode.value;
+  const mode = groupMode ? groupMode.value : "none";
 
   list.forEach(card => {
     const data = saveData[card.id] || { count: 0, want: false, memo: "" };
@@ -161,22 +177,22 @@ function renderCards() {
         currentMainGroup = card.wave;
         const title = document.createElement("div");
         title.className = "wave-title";
-        title.textContent = "💖 " + currentMainGroup;
+        title.textContent = "💖 " + (currentMainGroup || "未設定");
         cardList.appendChild(title);
       }
     } else if (mode === "character") {
       const charName = cleanName(card.character);
-      // 大見出し（キャラ名）の作成
+      // 大見出し
       if (charName !== currentMainGroup) {
         currentMainGroup = charName;
-        currentSubGroup = ""; // キャラが変わったら弾数グループもリセット
+        currentSubGroup = ""; 
         const title = document.createElement("div");
         title.className = "wave-title";
         title.style.marginTop = "25px";
         title.textContent = "🌟 " + currentMainGroup;
         cardList.appendChild(title);
       }
-      // 小見出し（弾数）の作成
+      // 小見出し
       if (card.wave !== currentSubGroup) {
         currentSubGroup = card.wave;
         const subTitle = document.createElement("div");
@@ -186,7 +202,7 @@ function renderCards() {
         subTitle.style.borderLeft = "4px solid #ff80b3";
         subTitle.style.background = "rgba(255, 240, 245, 0.6)";
         subTitle.style.marginTop = "10px";
-        subTitle.textContent = "🎬 " + currentSubGroup;
+        subTitle.textContent = "🎬 " + (currentSubGroup || "他");
         cardList.appendChild(subTitle);
       }
     }
@@ -195,20 +211,25 @@ function renderCards() {
     cardList.appendChild(div);
   });
 
-  document.getElementById("totalCards").textContent = list.length + "件";
-  document.getElementById("ownedCards").textContent = "所持 " + own;
-  document.getElementById("wantedCards").textContent = "求 " + want;
+  const totalEl = document.getElementById("totalCards");
+  const ownedEl = document.getElementById("ownedCards");
+  const wantedEl = document.getElementById("wantedCards");
+
+  if (totalEl) totalEl.textContent = list.length + "件";
+  if (ownedEl) ownedEl.textContent = "所持 " + own;
+  if (wantedEl) wantedEl.textContent = "求 " + want;
 }
 
 function getFilteredAndSortedCards() {
+  if (!cards || cards.length === 0) return [];
   let list = [...cards];
-  const key = searchBox.value.toLowerCase();
+  const key = searchBox ? searchBox.value.toLowerCase() : "";
 
   if (key) {
     list = list.filter(c =>
-      c.id.toLowerCase().includes(key) ||
-      c.dress.toLowerCase().includes(key) ||
-      cleanName(c.character).toLowerCase().includes(key)
+      (c.id && c.id.toLowerCase().includes(key)) ||
+      (c.dress && c.dress.toLowerCase().includes(key)) ||
+      (c.character && cleanName(c.character).toLowerCase().includes(key))
     );
   }
 
@@ -224,30 +245,40 @@ function getFilteredAndSortedCards() {
 
   list = list.filter(card => {
     const d = saveData[card.id] || { count: 0, want: false, memo: "" };
-    if (dupOnly.checked && d.count < 1) return false;
-    if (wantOnly.checked && !d.want) return false;
-    if (noneOnly.checked && d.count > 0) return false;
+    if (dupOnly && dupOnly.checked && d.count < 1) return false;
+    if (wantOnly && wantOnly.checked && !d.want) return false;
+    if (noneOnly && noneOnly.checked && d.count > 0) return false;
     return true;
   });
 
-  const mode = groupMode.value;
+  const mode = groupMode ? groupMode.value : "none";
   if (mode === "character") {
-    // 第一：キャラ順 -> 第二：弾(wave)順 -> 第三：カードID順
     list.sort((a, b) => {
-      const compChar = a.character.localeCompare(b.character, "ja", { numeric: true });
+      const valA_char = a.character || "";
+      const valB_char = b.character || "";
+      const compChar = valA_char.localeCompare(valB_char, "ja", { numeric: true });
       if (compChar !== 0) return compChar;
 
-      const compWave = a.wave.localeCompare(b.wave, "ja", { numeric: true });
+      const valA_wave = a.wave || "";
+      const valB_wave = b.wave || "";
+      const compWave = valA_wave.localeCompare(valB_wave, "ja", { numeric: true });
       if (compWave !== 0) return compWave;
 
-      return a.id.localeCompare(b.id, "ja", { numeric: true });
+      const valA_id = a.id || "";
+      const valB_id = b.id || "";
+      return valA_id.localeCompare(valB_id, "ja", { numeric: true });
     });
   } else {
-    // 弾ごと、または見出しなしの場合
-    list.sort((a, b) =>
-      a.wave.localeCompare(b.wave, "ja", { numeric: true }) ||
-      a.id.localeCompare(b.id, "ja", { numeric: true })
-    );
+    list.sort((a, b) => {
+      const valA_wave = a.wave || "";
+      const valB_wave = b.wave || "";
+      const compWave = valA_wave.localeCompare(valB_wave, "ja", { numeric: true });
+      if (compWave !== 0) return compWave;
+
+      const valA_id = a.id || "";
+      const valB_id = b.id || "";
+      return valA_id.localeCompare(valB_id, "ja", { numeric: true });
+    });
   }
   return list;
 }
@@ -271,4 +302,119 @@ function createCardElement(card, data, isCapture = false) {
 
   div.innerHTML = `
     <button class="want">${data.want ? "💖" : "🤍"}</button>
-    <img src="img/${card.image}"
+    <img src="img/${card.image || ''}" onerror="this.src=''">
+    <div class="card-id">${card.id || ''}</div>
+    <div class="dress">${card.dress || ''}</div>
+    <div class="char-name">${cleanName(card.character)}</div>
+    <div class="rarity-badge">${card.rarity || ''}</div>
+    <div class="count-box">
+      <button class="minus">-</button>
+      <input type="number" min="0" max="99" value="${data.count}">
+      <button class="plus">+</button>
+    </div>
+    ${memoHtml}
+  `;
+
+  if (!isCapture) {
+    const plus = div.querySelector(".plus");
+    const minus = div.querySelector(".minus");
+    const num = div.querySelector("input[type=number]");
+    const heart = div.querySelector(".want");
+    const memo = div.querySelector(".memo");
+
+    if (plus) plus.onclick = () => { data.count++; update(); };
+    if (minus) minus.onclick = () => { if (data.count > 0) data.count--; update(); };
+    if (num) num.onchange = () => { data.count = Number(num.value) || 0; update(); };
+    
+    if (heart) {
+      heart.onclick = e => {
+        e.preventDefault();
+        e.stopPropagation();
+        data.want = !data.want;
+        update();
+      };
+    }
+
+    if (memo) {
+      memo.oninput = () => {
+        data.memo = memo.value.slice(0, 20);
+        saveData[card.id] = data;
+        save();
+      };
+    }
+  }
+
+  function update() {
+    saveData[card.id] = data;
+    save();
+    renderCards();
+  }
+
+  return div;
+}
+
+// ----------------------
+// イベント監視（ツールバー）
+// ----------------------
+[searchBox, dupOnly, wantOnly, noneOnly, groupMode].forEach(el => {
+  if (el) {
+    el.addEventListener("input", renderCards);
+    el.addEventListener("change", renderCards);
+  }
+});
+
+// ----------------------
+// 画像保存アクション
+// ----------------------
+const saveAllBtn = document.getElementById("saveAll");
+const saveWantBtn = document.getElementById("saveWant");
+
+if (saveAllBtn) saveAllBtn.onclick = () => { capture("一覧"); };
+if (saveWantBtn) saveWantBtn.onclick = () => {
+  if (wantOnly) wantOnly.checked = true;
+  renderCards();
+  setTimeout(() => { capture("求カード"); }, 300);
+};
+
+function capture(name) {
+  const captureArea = document.getElementById("captureArea");
+  if (!captureArea) return;
+  const mode = groupMode ? groupMode.value : "none";
+
+  const originalHTML = captureArea.innerHTML;
+  const list = getFilteredAndSortedCards();
+
+  captureArea.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "capture-mode";
+
+  if (mode === "none") {
+    const grid = document.createElement("div");
+    grid.className = "capture-normal-grid";
+    list.forEach(card => {
+      const data = saveData[card.id] || { count: 0, want: false, memo: "" };
+      grid.appendChild(createCardElement(card, data, true));
+    });
+    wrapper.appendChild(grid);
+  } else if (mode === "wave") {
+    const groups = {};
+    list.forEach(card => {
+      const w = card.wave || "未設定";
+      if (!groups[w]) groups[w] = [];
+      groups[w].push(card);
+    });
+
+    const groupGrid = document.createElement("div");
+    groupGrid.className = "capture-group-grid";
+
+    Object.keys(groups).forEach(gName => {
+      const count = groups[gName].length;
+      if (count === 0) return;
+
+      if (count <= 10) {
+        const groupBox = document.createElement("div");
+        groupBox.className = "capture-group-box";
+        
+        const title = document.createElement("div");
+        title.className = "wave-title";
+        title.textContent = "💖 "
